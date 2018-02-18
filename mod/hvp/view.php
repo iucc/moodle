@@ -49,6 +49,11 @@ $view->validatecontent();
 $PAGE->set_url(new \moodle_url('/mod/hvp/view.php', array('id' => $id)));
 $PAGE->set_title(format_string($content['title']));
 $PAGE->set_heading($course->fullname);
+
+$isembeded = optional_param('isembedded', false, PARAM_BOOL);  //  Support for lib/editor/atto/plugins/hvp
+if ($isembeded) {
+    $PAGE->set_pagelayout('embedded');
+}
  
 // Add H5P assets to page.
 $view->addassetstopage();
