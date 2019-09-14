@@ -291,10 +291,18 @@ class calculator {
     qa.maxmark,
     qas.fraction * qa.maxmark as mark";
 
+        if (EXAM)
+            $fields .= ',qas.state';
+
         $lateststeps = $dm->load_questions_usages_latest_steps($qubaids, $this->stats->get_all_slots(), $fields);
         $summarks = array();
         if ($lateststeps) {
-            foreach ($lateststeps as $step) {
+            foreach ($lateststeps as $key => $step) {
+                if (EXAM)
+                    if ($step->state == 'gaveup' || $step->state == 'disqualified') {
+                        unset($lateststeps[$key]);
+                        continue;
+                    }
                 if (!isset($summarks[$step->questionusageid])) {
                     $summarks[$step->questionusageid] = 0;
                 }
@@ -346,6 +354,8 @@ class calculator {
      * @param calculated $stats question stats to update.
      */
     protected function initial_question_walker($stats) {
+
+        if ($stats->s !== 0) { //EXAM
         $stats->markaverage = $stats->totalmarks / $stats->s;
 
         if ($stats->maxmark != 0) {
@@ -360,6 +370,7 @@ class calculator {
 
         sort($stats->markarray, SORT_NUMERIC);
         sort($stats->othermarksarray, SORT_NUMERIC);
+        } //EXAM
 
         // Here we have collected enough data to make the decision about which questions have variants whose stats we also want to
         // calculate. We delete the initialised structures where they are not needed.

@@ -39,6 +39,9 @@ class quiz_statistics_settings_form extends moodleform {
     protected function definition() {
         $mform = $this->_form;
 
+        if (EXAM)
+            $mform->addElement('static', '__notice__', '', get_string('notice', 'quiz_statistics'));
+
         $mform->addElement('header', 'preferencespage', get_string('reportsettings', 'quiz_statistics'));
 
         $options = array();

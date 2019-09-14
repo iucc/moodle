@@ -150,5 +150,30 @@ function xmldb_quiz_upgrade($oldversion) {
     // Automatically generated Moodle v3.7.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2019052003) {
+
+        // Define table quiz_slot_tags to be created.
+        $table = new xmldb_table('quiz_sections');
+
+        // Adding fields to table quiz_slot_tags.
+        $field = new xmldb_field('maxquestions', XMLDB_TYPE_INTEGER, '4');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('bestquestions', XMLDB_TYPE_INTEGER, '4');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('numslots', XMLDB_TYPE_INTEGER, '4');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Quiz savepoint reached.
+        upgrade_mod_savepoint(true, 2019052003, 'quiz');
+    }
+
     return true;
 }

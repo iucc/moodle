@@ -355,6 +355,9 @@ class quiz_overview_report extends quiz_attempts_report {
 
         $transaction->allow_commit();
 
+        if (EXAM)
+            quiz_disqualify_extra_questions(quiz_attempt::create($attempt->id));
+
         // Really, PHP should not need this hint, but without this, we just run out of memory.
         $quba = null;
         $transaction = null;

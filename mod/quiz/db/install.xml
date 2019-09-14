@@ -84,6 +84,9 @@
         <FIELD NAME="firstslot" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Number of the first slot in the section. The section runs from here to the start of the next section, or the end of the quiz."/>
         <FIELD NAME="heading" TYPE="char" LENGTH="1333" NOTNULL="false" SEQUENCE="false" COMMENT="The text of the heading. May be an empty string/null. Multilang format."/>
         <FIELD NAME="shufflequestions" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the question order within this section should be shuffled for each attempt."/>
+        <FIELD NAME="maxquestions" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="bestquestions" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="numslots" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

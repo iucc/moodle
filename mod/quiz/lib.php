@@ -2492,3 +2492,49 @@ function mod_quiz_output_fragment_add_random_question_form($args) {
 
     return $form->render();
 }
+
+function mod_quiz_inplace_editable($itemtype, $itemid, $newvalue) {
+    global $CFG, $DB, $PAGE;
+
+    if ($itemtype == 'maxquestions' || $itemtype == 'bestquestions') {
+        $quiz_section   = $DB->get_record('quiz_sections', array('id' => $itemid), '*', MUST_EXIST);
+        $quiz  = $DB->get_record('quiz', array('id' => $quiz_section->quizid), '*', MUST_EXIST);
+        $cm      = get_coursemodule_from_instance('quiz', $quiz_section->quizid, $quiz->course, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $PAGE->set_context($context);
+        require_login($quiz->course, false, $cm);
+
+        if ($next_section_firstslot  = $DB->get_field_sql("SELECT firstslot FROM {quiz_sections} WHERE quizid=? AND firstslot>? ORDER BY firstslot LIMIT 1", array('quizid' => $quiz_section->quizid, $quiz_section->firstslot)))
+            $lastslot = $next_section_firstslot - 1;
+        else
+            $lastslot = $DB->get_field_sql("SELECT max(slot) FROM {quiz_slots} WHERE quizid=?",  array('quizid' => $quiz_section->quizid));
+        $numslots = $DB->count_records_sql("SELECT count(1) FROM {quiz_slots} WHERE quizid=? AND slot>=? AND slot<=? AND NOT maxmark=0", array($quiz->id, $quiz_section->firstslot, $lastslot));
+
+        if ($itemtype == 'maxquestions') {
+            $max = $numslots;
+            $min = isset($quiz_section->bestquestions) ? $quiz_section->bestquestions : 0;
+        } else { #   == 'bestquestions'
+            $max = isset($quiz_section->maxquestions) ? $quiz_section->maxquestions : $quiz_section->numslots;
+            $min = 0;
+        }
+        $questions = $itemtype;
+        $newvalue = trim($newvalue);
+        if (empty($newvalue) || $newvalue == $max || $newvalue == 0)
+            $$questions = null;
+        else if (preg_match('/^\d+$/', $newvalue))
+            if ($newvalue > $min && $newvalue < $max)
+                $$questions = $newvalue;
+        if (isset($$questions) || $$questions === null) {
+            $quiz_section->$questions = $$questions;
+            $quiz_section->numslots = $numslots;
+            $DB->update_record('quiz_sections', $quiz_section);
+            require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+            quiz_update_sumgrades($quiz, false);
+        } else
+            $$questions = $quiz_section->$questions;
+
+        return new \core\output\inplace_editable('mod_quiz', $questions, $itemid, true, $$questions, $$questions);
+    }
+}
+

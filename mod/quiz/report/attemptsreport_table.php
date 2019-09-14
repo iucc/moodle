@@ -247,6 +247,16 @@ abstract class quiz_attempts_report_table extends table_sql {
         if ($state->is_finished() && $state != question_state::$needsgrading) {
             $feedbackimg = $this->icon_for_fraction($this->slot_fraction($attempt, $slot));
         }
+        if (EXAM) {
+            if (get_class($state) == 'question_state_disqualified')
+                $feedbackimg = $OUTPUT->pix_icon('i/grade_' . 'disqualified', get_string('disqualified', 'question'),
+                'moodle', array('class' => 'icon'));
+            else if (get_class($state) == 'question_state_gaveup') {
+                $feedbackimg = $OUTPUT->pix_icon('i/grade_' . 'notanswered', get_string('notanswered', 'question'),
+                'moodle', array('class' => 'icon'));
+                $data = '';
+            }
+        } //EXAM
 
         $output = html_writer::tag('span', $feedbackimg . html_writer::tag('span',
                 $data, array('class' => $state->get_state_class(true))) . $flag, array('class' => 'que'));

@@ -65,6 +65,11 @@ class backup_quiz_activity_structure_step extends backup_questions_activity_stru
 
         $sections = new backup_nested_element('sections');
 
+        if (EXAM)
+            $section = new backup_nested_element('section', array('id'), array(
+                'firstslot', 'heading', 'shufflequestions',
+                'maxquestions', 'numslots'));
+        else
         $section = new backup_nested_element('section', array('id'), array(
             'firstslot', 'heading', 'shufflequestions'));
 

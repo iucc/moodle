@@ -743,6 +743,7 @@ table.quizreviewsummary td.cell {
 .instanceshufflequestions [type="checkbox"] {
     vertical-align: middle;
     margin-right: .5rem;
+    margin-top: 4px;
 }
 
 #page-mod-quiz-edit ul.section {
@@ -1270,3 +1271,29 @@ table#categoryquestions {
         page-break-inside: avoid;
     }
 }
+
+#page-mod-quiz-edit .section-heading .bestquestions,
+#page-mod-quiz-edit .section-heading .maxquestions {
+    float: right;
+    margin: 0.8em 30px 0 0;
+    font-size: 16px;
+}
+
+#page-mod-quiz-edit .section-heading .bestquestions input,
+#page-mod-quiz-edit .section-heading .maxquestions input {
+    width: 1.5em;
+}
+
+#page-mod-quiz-edit .section-heading .bestquestions label,
+#page-mod-quiz-edit .section-heading .maxquestions label{
+    float:left;
+    margin-right:10px;
+}
+dir-rtl#page-mod-quiz-edit .section-heading .bestquestions label,
+dir-rtl#page-mod-quiz-edit .section-heading .maxquestions label{
+    float:right;
+    margin-left:10px;
+}
+
+.path-mod-quiz #mod_quiz_navblock .qnbutton.notanswered .trafficlight {background-color: #999  !important;}
+.path-mod-quiz #mod_quiz_navblock .qnbutton.disqualified .trafficlight {background-color: #00f;}

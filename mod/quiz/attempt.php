@@ -131,4 +131,9 @@ if ($attemptobj->is_last_page($page)) {
     $nextpage = $page + 1;
 }
 
+if (EXAM) {
+    $PAGE->requires->js('/lib/toggle_radio.js');
+    $PAGE->requires->js_init_call('toggle_radio', array());
+}
+
 echo $output->attempt_page($attemptobj, $page, $accessmanager, $messages, $slots, $id, $nextpage);

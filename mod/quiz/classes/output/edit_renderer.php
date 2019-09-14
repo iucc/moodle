@@ -406,6 +406,10 @@ class edit_renderer extends \plugin_renderer_base {
             $output .= $this->section_remove_icon($section);
         }
         $output .= $this->section_shuffle_questions($structure, $section);
+        if (EXAM) {
+            $output .= $this->section_maxquestions($structure, $section);
+            $output .= $this->section_bestquestions($structure, $section);
+        }
 
         $output .= html_writer::end_div($output, 'section-heading');
 
@@ -435,7 +439,7 @@ class edit_renderer extends \plugin_renderer_base {
             $checkboxattributes['checked'] = 'checked';
         }
 
-        if ($structure->is_first_section($section)) {
+        if (EXAM || $structure->is_first_section($section)) {
             $help = $this->help_icon('shufflequestions', 'quiz');
         } else {
             $help = '';
@@ -448,6 +452,28 @@ class edit_renderer extends \plugin_renderer_base {
                 $checkboxattributes['id'], false);
         return html_writer::span($progressspan . $checkbox . $label. ' ' . $helpspan,
                 'instanceshufflequestions', array('data-action' => 'shuffle_questions'));
+    }
+
+    public function section_maxquestions(structure $structure, $section) {
+        global $DB, $OUTPUT;
+        $maxquestions = $DB->get_field('quiz_sections', 'maxquestions ', array('id' => $section->id));
+        $help = $this->help_icon('maxquestions',  'quiz');
+        $helpspan = html_writer::span($help, 'maxquestions-help-tip');
+        $inplace_editable = $OUTPUT->render(new \core\output\inplace_editable('mod_quiz', 'maxquestions',
+            $section->id, true, $maxquestions, $maxquestions, 'Max questions',  'Max questions'));
+        $label = html_writer::label(get_string('maxquestions', 'quiz') . ': ', null);
+        return html_writer::div($inplace_editable . $label . ' ' . $helpspan, 'maxquestions');
+    }
+
+    public function section_bestquestions(structure $structure, $section) {
+        global $DB, $OUTPUT;
+        $bestquestions = $DB->get_field('quiz_sections', 'bestquestions ', array('id' => $section->id));
+        $help = $this->help_icon('bestquestions',  'quiz');
+        $helpspan = html_writer::span($help, 'bestquestions-help-tip');
+        $inplace_editable = $OUTPUT->render(new \core\output\inplace_editable('mod_quiz', 'bestquestions',
+            $section->id, true, $bestquestions, $bestquestions, 'Best questions',  'Best questions'));
+        $label = html_writer::label(get_string('bestquestions', 'quiz') . ': ', null);
+        return html_writer::div($inplace_editable . $label . ' ' . $helpspan, 'bestquestions');
     }
 
     /**

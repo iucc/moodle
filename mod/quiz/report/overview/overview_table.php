@@ -229,6 +229,7 @@ class quiz_overview_table extends quiz_attempts_report_table {
             return $grade;
         }
 
+        if (!EXAM)
         if (isset($this->regradedqs[$attempt->usageid])) {
             $newsumgrade = 0;
             $oldsumgrade = 0;

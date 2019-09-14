@@ -56,6 +56,8 @@ abstract class question_state {
     public static $mangrwrong;
     public static $mangrpartial;
     public static $mangrright;
+    public static $disqualified;
+
     /**#@+-*/
 
     protected function __construct() {
@@ -282,6 +284,20 @@ abstract class question_state {
     }
 }
 
+class question_state_disqualified extends question_state {
+    public function is_finished() {
+        return true;
+    }
+    public function get_state_class($showcorrectness) {
+        return 'disqualified';
+    }
+    public function default_string($showcorrectness) {
+        return get_string($this->get_state_class($showcorrectness), 'quiz');
+    }
+    public function corresponding_commented_state($fraction) {
+        return self::manually_graded_state_for_fraction($fraction);
+    }
+}
 
 /**#@+
  * Specific question_state subclasses.

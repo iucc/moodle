@@ -989,3 +989,12 @@ $string['wronguse'] = 'You can not use this page like that';
 $string['xhtml'] = 'XHTML';
 $string['youneedtoenrol'] = 'You need to enrol in this course before you can attempt this quiz';
 $string['yourfinalgradeis'] = 'Your final grade for this quiz is {$a}.';
+
+$string['bestquestions'] = 'Keep the highest';
+$string['bestquestions_help'] = 'If more than this number of question are answered, calculate the final grade from the questions with the highest grades.<br>(All questions should be of equal value.)<br><br>Note: Must be a number between 0 and the number of questions (or <i>Max questions to grade</i>, if set).<br>If blank or 0 or equal to the number of questions (or <i>Max questions to grade</i>), an empty value is shown and all (or <i>Max</i>) questions are graded.<br>Any other value is ignored<br>';
+$string['disqualifiedtitle'] = 'Disqualified';
+$string['disqualified'] = 'Disqualified: Too many responses';
+$string['maxquestions'] = 'Max questions to grade';
+$string['maxquestions_help'] = 'If more than this number of questions are answered, ignore later questions.<br>(All questions should be of equal value.)<br><br>Note: Must be a number between 0 and the number of questions.<br>If blank or 0 equal to the number of questions, an empty value is shown and all questions are graded.<br>Any other value is ignored';
+
+

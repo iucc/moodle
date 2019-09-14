@@ -1861,6 +1861,9 @@ class quiz_attempt {
 
         $this->attempt->timemodified = $timestamp;
         if ($this->attempt->state == self::FINISHED) {
+            if (EXAM)
+                $this->attempt->sumgrades = $this->get_total_mark($this->quba);
+            else
             $this->attempt->sumgrades = $this->quba->get_total_mark();
         }
         if ($becomingoverdue) {
@@ -1978,10 +1981,16 @@ class quiz_attempt {
 
         $this->attempt->timemodified = $timestamp;
         $this->attempt->timefinish = $timestamp;
+        if (EXAM)
+            $this->attempt->sumgrades = $this->get_total_mark($this->quba);
+        else
         $this->attempt->sumgrades = $this->quba->get_total_mark();
         $this->attempt->state = self::FINISHED;
         $this->attempt->timecheckstate = null;
         $DB->update_record('quiz_attempts', $this->attempt);
+
+        if (EXAM)
+            quiz_disqualify_extra_questions(quiz_attempt::create($this->get_attemptid()), true);
 
         if (!$this->is_preview()) {
             quiz_save_best_grade($this->get_quiz(), $this->attempt->userid);
@@ -2382,6 +2391,42 @@ class quiz_attempt {
         return false;
     }
 
+    function get_total_mark($quba = null) {
+        if (!function_exists('cmp')) {
+            function cmp($a,$b) {
+                return $a < $b;
+            }
+        }
+
+        global $DB;
+        if (!$quba)
+            $quba = question_engine::load_questions_usage_by_activity($this->get_uniqueid());
+
+        $total = 0;
+        if ($marks = $quba->get_all_marks()) {
+
+            $numslots = array();
+            $lastsection = null;
+            foreach ($DB->get_records('quiz_sections', array('quizid'=>$this->get_quizid()), 'firstslot ASC') as $section) {
+                if ($lastsection)
+                    $numslots[$lastsection->id] = $section->firstslot - $lastsection->firstslot;
+                $lastsection = $section;
+            }
+            $numslots[$section->id] = null;
+
+            foreach ($DB->get_records('quiz_sections', array('quizid'=>$this->get_quizid()), 'firstslot ASC') as $section) {
+                $slice = array_slice($marks, $section->firstslot - 1, $numslots[$section->id], true);
+                if ($section->bestquestions) {
+                    usort($slice, 'cmp');
+                    $total += array_sum(array_slice($slice, 0, $section->bestquestions));
+                } else
+                    $total += array_sum($slice);
+            }
+
+        }
+
+        return $total;
+    }
 }
 
 

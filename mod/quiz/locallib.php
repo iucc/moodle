@@ -622,9 +622,32 @@ function quiz_has_feedback($quiz) {
  * You should call {@link quiz_delete_previews()} before you call this function.
  *
  * @param object $quiz a quiz.
+ * @param object $flag If true, reset maxquestions, bestquestions and numslots
  */
-function quiz_update_sumgrades($quiz) {
+function quiz_update_sumgrades($quiz, $flag=true) {
     global $DB;
+
+    if (EXAM)
+        if ($flag)
+            // We ought to also redraw inplace_editables...
+            $DB->execute("UPDATE {quiz_sections} SET maxquestions=NULL,bestquestions=NULL,numslots=NULL WHERE quizid=?", array('quizid' => $quiz->id));
+        else {
+            // Assume all slots in each section in which maxquestions and/or bestquestions is set have same maxmark or maxmark of 0
+            $droppedmarks = 0;
+            if ($recs = $DB->get_records_sql("
+                    SELECT DISTINCT section.id, (numslots - CASE WHEN bestquestions>0 THEN bestquestions ELSE maxquestions END) * maxmark AS droppedmarks 
+                    FROM {quiz_sections} AS section
+                    JOIN {quiz_slots} USING (quizid)
+                    WHERE quizid=? AND slot>=firstslot
+                        AND slot<firstslot+numslots
+                        AND NOT maxmark=0
+                        AND (bestquestions IS NOT NULL OR maxquestions IS NOT NULL)",
+                array('quizid' => $quiz->id)))
+                foreach ($recs as $rec) {
+                    $droppedmarks += $rec->droppedmarks;
+                }
+
+        }
 
     $sql = 'UPDATE {quiz}
             SET sumgrades = COALESCE((
@@ -632,6 +655,7 @@ function quiz_update_sumgrades($quiz) {
                 FROM {quiz_slots}
                 WHERE quizid = {quiz}.id
             ), 0)
+            ' . (EXAM && !empty($droppedmarks) ? " - $droppedmarks " : "") . '
             WHERE id = ?';
     $DB->execute($sql, array($quiz->id));
     $quiz->sumgrades = $DB->get_field('quiz', 'sumgrades', array('id' => $quiz->id));
@@ -653,6 +677,19 @@ function quiz_update_all_attempt_sumgrades($quiz) {
     global $DB;
     $dm = new question_engine_data_mapper();
     $timenow = time();
+
+    if (EXAM)
+        if ($DB->record_exists_sql("SELECT id FROM {quiz_sections} WHERE quizid=? AND NOT bestquestions ISNULL", array('quizid' => $quiz->id))) {
+            foreach ($DB->get_records('quiz_attempts', array('quiz' => $quiz->id)) as $rec) {
+                if ($rec->finishedstate = quiz_attempt::FINISHED) {
+                    $attempt = quiz_attempt::create($rec->id);
+                    $rec->sumgrades = $attempt->get_total_mark();
+                    $rec->timemodified = $timenow;
+                    $DB->update_record('quiz_attempts', $rec);
+                }
+            }
+            return;
+        }
 
     $sql = "UPDATE {quiz_attempts}
             SET
@@ -2608,5 +2645,42 @@ function quiz_create_attempt_handling_errors($attemptid, $cmid = null) {
         throw new moodle_exception('invalidcoursemodule');
     } else {
         return $attempobj;
+    }
+}
+
+/*
+ * @param  flag If false, quba will in any case be rebuilt before get_total_mark() is run
+ */
+function quiz_disqualify_extra_questions(quiz_attempt $attempt, $flag = false) {
+    global $DB;
+    $slots = $attempt->get_slots();
+    foreach ($DB->get_records('quiz_sections', array('quizid'=>$attempt->get_quizid()), 'firstslot ASC') as $section) {
+        if ($section->maxquestions) {
+            $questions = 0;
+            $numslots = $section->numslots;
+            for ($i = $section->firstslot; $i < $section->firstslot + $numslots; $i++) {
+                $qa = $attempt->get_question_attempt($slots[$i-1]);
+                if (get_class($qa->get_question()->qtype) == 'qtype_description') {
+                    $numslots += 1;
+                    continue;
+                }
+                if (!$qa->empty_response()) {
+                    $questions++;
+                    if ($questions > $section->maxquestions) {
+                        $steps = $DB->get_records('question_attempt_steps', array('questionattemptid'=>$qa->get_database_id()), 'sequencenumber');
+                        $step = array_pop($steps);
+                        $step->state = 'disqualified';
+                        $step->fraction = 0;
+                        $DB->update_record('question_attempt_steps', $step);
+                        $DB->set_field('quiz_overview_regrades', 'newfraction', $step->fraction, array( 'questionusageid' => $qa->get_usage_id()));
+
+                        if ($flag) {
+                            $total = $attempt->get_total_mark();
+                            $DB->set_field('quiz_attempts', 'sumgrades', $total, array('id'=>$attempt->get_attemptid()));
+                        }
+                    }
+                }
+            }
+        }
     }
 }

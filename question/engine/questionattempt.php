@@ -1157,6 +1157,9 @@ class question_attempt {
                     $this->get_field_prefix() . $extraprefix . $name, $type, $postdata);
             if (!is_null($value)) {
                 $submitteddata[$extraprefix . $name] = $value;
+            } else if (EXAM) { #FIXME ???
+                if ($name == 'answer')
+                    $submitteddata[$extraprefix . $name] = '';
             }
         }
         return $submitteddata;
@@ -1581,6 +1584,10 @@ class question_attempt {
      */
     public function get_steps_with_submitted_response_iterator() {
         return new question_attempt_steps_with_submitted_response_iterator($this);
+    }
+
+    public function empty_response() {
+        return $this->get_state() == question_state::$gaveup || $this->responsesummary === null || $this->responsesummary === false || $this->responsesummary === '' || (get_class($this->question) == 'essay' && count_words($this->responsesummary) == 0);
     }
 }
 

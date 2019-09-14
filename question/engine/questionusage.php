@@ -371,6 +371,18 @@ class question_usage_by_activity {
         return $mark;
     }
 
+    public function get_all_marks() {
+        $marks = array();
+        foreach ($this->questionattempts as $qa) {
+            if ($qa->get_max_mark() > 0 && $qa->get_state() == question_state::$needsgrading) {
+                return null;
+            }
+            $marks[$qa->get_slot()] = $qa->get_mark();
+        }
+        return $marks;
+    }
+
+
     /**
      * Get summary information about this usage.
      *

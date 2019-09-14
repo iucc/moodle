@@ -120,3 +120,5 @@ $string['statsfor'] = 'Quiz statistics (for {$a})';
 $string['variant'] = 'Variant';
 $string['viewanalysis'] = 'View details';
 $string['whichtries'] = 'Analyze responses for';
+
+$string['notice'] = '<div style="color:firebrick;font-size:120%;">Note: <i>Unanswered</i> and <i>Disqualified</i> questions are not included in the calculations</div>';
