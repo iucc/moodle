@@ -201,8 +201,13 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
             $toolbar4 .= $this->render_toolbar_button('background_colour_clear', 'currentstamp', $this->get_shortcut('currentstamp'));
             $toolbar4 = html_writer::div($toolbar4, 'toolbar', array('role'=>'toolbar'));
 
+            // Html
+            $toolbar5 = '';
+            $toolbar5 .= $this->render_toolbar_button('math', 'htmleditor');
+            $toolbar5 = html_writer::div($toolbar5, 'toolbar', array('role'=>'toolbar'));
+
             // Add toolbars to toolbar_group in order of display, and float the toolbar_group right.
-            $toolbars = $rotationtools . $toolbar1 . $toolbar2 . $toolbar3 . $toolbar4;
+            $toolbars = $rotationtools . $toolbar1 . $toolbar2 . $toolbar3 . $toolbar4 . $toolbar5;
             $toolbargroup = html_writer::div($toolbars, 'toolbar_group', array('role' => 'toolbar_group'));
         }
 

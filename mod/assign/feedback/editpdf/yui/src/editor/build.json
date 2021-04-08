@@ -23,7 +23,8 @@
         "comment.js",
         "quickcomment.js",
         "quickcommentlist.js",
-        "editor.js"
+        "editor.js",
+        "htmleditor.js"
       ]
     }
   }

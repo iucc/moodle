@@ -195,6 +195,13 @@ EDITOR.prototype = {
      */
     searchcommentswindow: null,
 
+    /**
+     * The search comments window.
+     * @property searchcommentswindow
+     * @type M.core.dialogue
+     * @protected
+     */
+    htmleditorwindow: null,
 
     /**
      * The selected stamp picture.
@@ -800,7 +807,12 @@ EDITOR.prototype = {
             currentstampbutton,
             stampfiles,
             picker,
-            filename;
+            filename,
+            htmleditorbutton;
+
+        htmleditorbutton = this.get_dialogue_element(SELECTOR.HTMLEDITORBUTTON);
+        htmleditorbutton.on('click', this.open_htmleditor, this);
+        htmleditorbutton.on('key', this.open_htmleditor, 'down:13', this);
 
         searchcommentsbutton = this.get_dialogue_element(SELECTOR.SEARCHCOMMENTSBUTTON);
         searchcommentsbutton.on('click', this.open_search_comments, this);
@@ -1296,7 +1308,23 @@ EDITOR.prototype = {
         this.searchcommentswindow.show();
         e.preventDefault();
     },
+    /**
+     * Event handler to open the comment search interface.
+     *
+     * @param Event e
+     * @protected
+     * @method open_search_comments
+     */
+    open_htmleditor: function(e) {
+        if (!this.htmleditorwindow) {
+            this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
+                editor: this
+            });
+        }
 
+        this.htmleditorwindow.show();
+        e.preventDefault();
+    },
     /**
      * Toggle function to expand/collapse all comments on page.
      *
