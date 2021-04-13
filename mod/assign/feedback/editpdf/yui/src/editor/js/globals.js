@@ -81,6 +81,7 @@ var AJAXBASE = M.cfg.wwwroot + '/mod/assign/feedback/editpdf/ajax.php',
         'stamp': '.stampbutton',
         'select': '.selectbutton',
         'drag': '.dragbutton',
-        'highlight': '.highlightbutton'
+        'highlight': '.highlightbutton',
+        'htmleditor': '.htmleditorbutton'
     },
     STROKEWEIGHT = 4;

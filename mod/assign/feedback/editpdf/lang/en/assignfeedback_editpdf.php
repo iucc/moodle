@@ -110,3 +110,4 @@ $string['preparesubmissionsforannotation'] = 'Prepare submissions for annotation
 $string['rotateleft'] = 'Rotate 90 degrees to the left';
 $string['rotateright'] = 'Rotate 90 degrees to the right';
 $string['htmleditor'] = 'Html editor';
+$string['add'] = 'Add';

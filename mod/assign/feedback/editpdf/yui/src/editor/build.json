@@ -24,7 +24,8 @@
         "quickcomment.js",
         "quickcommentlist.js",
         "editor.js",
-        "htmleditor.js"
+        "htmleditor.js",
+        "annotionhtmleditor.js"
       ]
     }
   }

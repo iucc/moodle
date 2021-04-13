@@ -1240,7 +1240,10 @@ EDITOR.prototype = {
             return new M.assignfeedback_editpdf.annotationhighlight(data);
         } else if (type === "stamp") {
             return new M.assignfeedback_editpdf.annotationstamp(data);
+        } else if (type === "htmleditor") {
+            return new M.assignfeedback_editpdf.annotationhtml(data);
         }
+
         return false;
     },
 
@@ -1323,6 +1326,7 @@ EDITOR.prototype = {
         }
 
         this.htmleditorwindow.show();
+
         e.preventDefault();
     },
     /**
