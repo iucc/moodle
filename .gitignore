@@ -45,3 +45,4 @@ composer.phar
 atlassian-ide-plugin.xml
 /node_modules/
 moodle-plugin-ci.phar
+/.env

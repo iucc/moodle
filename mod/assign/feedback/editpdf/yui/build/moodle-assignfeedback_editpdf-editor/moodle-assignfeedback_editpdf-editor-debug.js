@@ -5015,8 +5015,21 @@ M.assignfeedback_editpdf.editor.init = M.assignfeedback_editpdf.editor.init || f
     M.assignfeedback_editpdf.instance = new EDITOR(params);
     return M.assignfeedback_editpdf.instance;
 };
-var HTMLEDITORNAME = "htmleditor",
-    HTMLEDITOR;
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 
 /**
  * Provides an in browser PDF editor.
@@ -5025,14 +5038,14 @@ var HTMLEDITORNAME = "htmleditor",
  */
 
 /**
- * This is a searchable dialogue of comments.
+ * Class representing a list of reach text.
  *
  * @namespace M.assignfeedback_editpdf
  * @class htmleditor
  * @constructor
  * @extends M.core.dialogue
  */
-HTMLEDITOR = function(config) {
+var HTMLEDITOR = function(config) {
     config.draggable = true;
     config.centered = true;
     config.width = 'auto';
@@ -5041,6 +5054,9 @@ HTMLEDITOR = function(config) {
     config.footerContent = '';
     HTMLEDITOR.superclass.constructor.apply(this, [config]);
 };
+
+var HTMLEDITORNAME = "htmleditor";
+
 
 Y.extend(HTMLEDITOR, M.core.dialogue, {
     /**
@@ -5159,7 +5175,7 @@ Y.extend(ANNOTATIONHTML, M.assignfeedback_editpdf.annotation, {
             scrollheight;
 
         // Lets add a contenteditable div.
-        node = Y.Node.create('<textarea/>');
+        node = Y.Node.create('<div/>');
         container = Y.Node.create('<div class="commentdrawable"/>');
         label = Y.Node.create('<label/>');
         marker = Y.Node.create('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 13 13" ' +
@@ -5199,7 +5215,10 @@ Y.extend(ANNOTATIONHTML, M.assignfeedback_editpdf.annotation, {
         container.setY(position.y);
         drawable.store_position(container, position.x, position.y);
         drawable.nodes.push(container);
-        node.set('value', Y.Escape.html(this.rawtext));
+        node.set('innerHTML', this.rawtext);
+        Y.use('mathjax', function() {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, node.getDOMNode()]);
+        });
         scrollheight = node.get('scrollHeight');
         node.setStyles({
             'height': scrollheight + 'px',

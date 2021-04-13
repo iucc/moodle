@@ -52,7 +52,7 @@ Y.extend(ANNOTATIONHTML, M.assignfeedback_editpdf.annotation, {
             scrollheight;
 
         // Lets add a contenteditable div.
-        node = Y.Node.create('<textarea/>');
+        node = Y.Node.create('<div/>');
         container = Y.Node.create('<div class="commentdrawable"/>');
         label = Y.Node.create('<label/>');
         marker = Y.Node.create('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 13 13" ' +
@@ -92,7 +92,10 @@ Y.extend(ANNOTATIONHTML, M.assignfeedback_editpdf.annotation, {
         container.setY(position.y);
         drawable.store_position(container, position.x, position.y);
         drawable.nodes.push(container);
-        node.set('value', Y.Escape.html(this.rawtext));
+        node.set('innerHTML', this.rawtext);
+        Y.use('mathjax', function() {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, node.getDOMNode()]);
+        });
         scrollheight = node.get('scrollHeight');
         node.setStyles({
             'height': scrollheight + 'px',

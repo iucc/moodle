@@ -1,5 +1,18 @@
-var HTMLEDITORNAME = "htmleditor",
-    HTMLEDITOR;
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 
 /**
  * Provides an in browser PDF editor.
@@ -8,14 +21,14 @@ var HTMLEDITORNAME = "htmleditor",
  */
 
 /**
- * This is a searchable dialogue of comments.
+ * Class representing a list of reach text.
  *
  * @namespace M.assignfeedback_editpdf
  * @class htmleditor
  * @constructor
  * @extends M.core.dialogue
  */
-HTMLEDITOR = function(config) {
+var HTMLEDITOR = function(config) {
     config.draggable = true;
     config.centered = true;
     config.width = 'auto';
@@ -24,6 +37,9 @@ HTMLEDITOR = function(config) {
     config.footerContent = '';
     HTMLEDITOR.superclass.constructor.apply(this, [config]);
 };
+
+var HTMLEDITORNAME = "htmleditor";
+
 
 Y.extend(HTMLEDITOR, M.core.dialogue, {
     /**
