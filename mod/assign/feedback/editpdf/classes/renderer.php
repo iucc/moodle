@@ -242,9 +242,7 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
         $body .= $canvas;
         $textarea = html_writer::tag('textarea', '',["id" => "html_editor",
                 "class" => "editor", "rows" => "20", "cols" => "50"] );
-        $addbutton = html_writer::tag('button', get_string('add', 'assignfeedback_editpdf'),
-                ["class" => "addhtml"]);
-        $textcontainer =  html_writer::tag('div', $textarea.$addbutton);
+        $textcontainer =  html_writer::tag('div', $textarea);
         $body .= html_writer::tag('div', $textcontainer, ["id" => "editorcontainer", "class" => "hidden"]);
         $footer = '';
 
@@ -303,7 +301,7 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
 
         $options = array('subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => 0, 'changeformat' => 0,
                 'areamaxbytes' => FILE_AREA_MAX_BYTES_UNLIMITED, 'context' => null, 'noclean' => 0, 'trusttext' => 0,
-                'return_types' => 15, 'enable_filemanagement' => true, 'removeorphaneddrafts' => false, 'autosave' => true);
+                'return_types' => 15, 'enable_filemanagement' => true, 'removeorphaneddrafts' => true, 'autosave' => false);
         if ($editor == 'tinymce') {
             $tinymce = new \tinymce_texteditor();
             if ($CFG->debugdeveloper) {

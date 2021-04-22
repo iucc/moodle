@@ -115,6 +115,23 @@ class restore_assignfeedback_editpdf_subplugin extends restore_subplugin {
     }
 
     /**
+     * Processes one feedback_editpdf_htmlcomments/htmlcomment element
+     * @param mixed $data
+     */
+    public function process_assignfeedback_editpdf_htmlcomment($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldgradeid = $data->gradeid;
+        // The mapping is set in the restore for the core assign activity
+        // when a grade node is processed.
+        $data->gradeid = $this->get_mappingid('grade', $data->gradeid);
+
+        $DB->insert_record('assignfeedback_editpdf_htcm', $data);
+
+    }
+
+    /**
      * Processes one /feedback_editpdf_rotation/pagerotation element
      * @param mixed $data
      */

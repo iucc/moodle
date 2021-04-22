@@ -230,6 +230,16 @@ EDITOR.prototype = {
     editingcomment: false,
 
     /**
+     * Prevent new comments from appearing
+     * immediately after clicking off a current
+     * comment
+     * @property editinghtmlcomment
+     * @type Boolean
+     * @public
+     */
+    editinghtmlcomment: false,
+
+    /**
      * Should inactive comments be collapsed?
      *
      * @property collapsecomments
@@ -614,7 +624,7 @@ EDITOR.prototype = {
      * @method prepare_pages_for_display
      */
     prepare_pages_for_display: function(data) {
-        var i, j, comment, error, annotation, readonly;
+        var i, j, comment, htmlcomment, error, annotation, readonly;
 
         if (!data.pagecount) {
             if (this.dialogue) {
@@ -639,6 +649,17 @@ EDITOR.prototype = {
                                                                                  comment.width,
                                                                                  comment.colour,
                                                                                  comment.rawtext);
+            }
+            for (j = 0; j < this.pages[i].htmlcomments.length; j++) {
+                htmlcomment = this.pages[i].htmlcomments[j];
+                this.pages[i].htmlcomments[j] = new M.assignfeedback_editpdf.htmlcomment(this,
+                    htmlcomment.gradeid,
+                    htmlcomment.pageno,
+                    htmlcomment.x,
+                    htmlcomment.y,
+                    htmlcomment.width,
+                    htmlcomment.colour,
+                    htmlcomment.rawtext);
             }
             for (j = 0; j < this.pages[i].annotations.length; j++) {
                 annotation = this.pages[i].annotations[j];
@@ -928,7 +949,7 @@ EDITOR.prototype = {
         currenttoolnode.setAttribute('aria-pressed', 'false');
         this.currentedit.tool = tool;
 
-        if (tool !== "comment" && tool !== "select" && tool !== "drag" && tool !== "stamp") {
+        if (tool !== "htmleditor" && tool !== "comment" && tool !== "select" && tool !== "drag" && tool !== "stamp") {
             this.lastannotationtool = tool;
         }
 
@@ -943,10 +964,13 @@ EDITOR.prototype = {
      */
     stringify_current_page: function() {
         var comments = [],
+            htmlcomments = [],
             annotations = [],
             page,
             i = 0;
-
+        for (i = 0; i < this.pages[this.currentpage].htmlcomments.length; i++) {
+            htmlcomments[i] = this.pages[this.currentpage].htmlcomments[i].clean();
+        }
         for (i = 0; i < this.pages[this.currentpage].comments.length; i++) {
             comments[i] = this.pages[this.currentpage].comments[i].clean();
         }
@@ -954,7 +978,7 @@ EDITOR.prototype = {
             annotations[i] = this.pages[this.currentpage].annotations[i].clean();
         }
 
-        page = {comments: comments, annotations: annotations};
+        page = {comments: comments, annotations: annotations, htmlcomments: htmlcomments};
 
         return Y.JSON.stringify(page);
     },
@@ -966,6 +990,7 @@ EDITOR.prototype = {
      */
     get_current_drawable: function() {
         var comment,
+            htmlcomment,
             annotation,
             drawable = false;
 
@@ -976,6 +1001,9 @@ EDITOR.prototype = {
         if (this.currentedit.tool === 'comment') {
             comment = new M.assignfeedback_editpdf.comment(this);
             drawable = comment.draw_current_edit(this.currentedit);
+        } else if (this.currentedit.tool === 'htmleditor') {
+                htmlcomment = new M.assignfeedback_editpdf.htmlcomment(this);
+                drawable = htmlcomment.draw_current_edit(this.currentedit);
         } else {
             annotation = this.create_annotation(this.currentedit.tool, {});
             if (annotation) {
@@ -1036,6 +1064,9 @@ EDITOR.prototype = {
         }
 
         if (this.editingcomment) {
+            return;
+        }
+        if (this.editinghtmlcomment) {
             return;
         }
 
@@ -1149,6 +1180,7 @@ EDITOR.prototype = {
     edit_end: function() {
         var duration,
             comment,
+            htmlcomment,
             annotation;
 
         duration = new Date().getTime() - this.currentedit.start;
@@ -1156,8 +1188,17 @@ EDITOR.prototype = {
         if (duration < CLICKTIMEOUT || this.currentedit.start === false) {
             return;
         }
-
-        if (this.currentedit.tool === 'comment') {
+        if (this.currentedit.tool === 'htmleditor') {
+            if (this.currentdrawable) {
+                this.currentdrawable.erase();
+            }
+            this.currentdrawable = false;
+            htmlcomment = new M.assignfeedback_editpdf.htmlcomment(this);
+            if (htmlcomment.init_from_edit(this.currentedit)) {
+                this.pages[this.currentpage].htmlcomments.push(htmlcomment);
+                this.drawables.push(htmlcomment.draw(true));
+            }
+        } else if (this.currentedit.tool === 'comment') {
             if (this.currentdrawable) {
                 this.currentdrawable.erase();
             }
@@ -1241,7 +1282,7 @@ EDITOR.prototype = {
         } else if (type === "stamp") {
             return new M.assignfeedback_editpdf.annotationstamp(data);
         } else if (type === "htmleditor") {
-            return new M.assignfeedback_editpdf.annotationhtml(data);
+            return new M.assignfeedback_editpdf.htmlcomment(data);
         }
 
         return false;
@@ -1316,7 +1357,7 @@ EDITOR.prototype = {
      *
      * @param Event e
      * @protected
-     * @method open_search_comments
+     * @method open_htmleditor
      */
     open_htmleditor: function(e) {
         if (!this.htmleditorwindow) {
@@ -1369,6 +1410,9 @@ EDITOR.prototype = {
         }
         for (i = 0; i < page.comments.length; i++) {
             this.drawables.push(page.comments[i].draw(false));
+        }
+        for (i = 0; i < page.htmlcomments.length; i++) {
+            this.drawables.push(page.htmlcomments[i].draw(false));
         }
     },
 

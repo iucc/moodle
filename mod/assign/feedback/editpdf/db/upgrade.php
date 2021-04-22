@@ -101,14 +101,33 @@ function xmldb_assignfeedback_editpdf_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2019010800, 'assignfeedback', 'editpdf');
     }
 
-    // Automatically generated Moodle v3.7.0 release upgrade line.
-    // Put any upgrade step following this.
+    if ($oldversion < 2021042100) {
+        // Define table assignfeedback_editpdf_htcm to be created.
+        $table = new xmldb_table('assignfeedback_editpdf_htcm');
+        // Adding fields to table assignfeedback_editpdf_rot.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('gradeid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('x', XMLDB_TYPE_INTEGER, '10', null, false, null, '0');
+        $table->add_field('y', XMLDB_TYPE_INTEGER, '10', null, false, null, '0');
+        $table->add_field('width', XMLDB_TYPE_INTEGER, '10', null, false, null, '120');
+        $table->add_field('rawtext', XMLDB_TYPE_TEXT, null, null, false, null, null);
+        $table->add_field('pageno', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('draft', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1');
 
-    // Automatically generated Moodle v3.8.0 release upgrade line.
-    // Put any upgrade step following this.
+        // Adding keys to table assignfeedback_editpdf_rot.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('gradeid', XMLDB_KEY_FOREIGN, ['gradeid'], 'assign_grades', ['id']);
 
-    // Automatically generated Moodle v3.9.0 release upgrade line.
-    // Put any upgrade step following this.
+        // Adding indexes to table assignfeedback_editpdf_rot.
+        $table->add_index('gradeid_pageno', XMLDB_INDEX_NOTUNIQUE, ['gradeid', 'pageno']);
+
+        // Conditionally launch create table for assignfeedback_editpdf_rot.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        // Editpdf savepoint reached.
+        upgrade_plugin_savepoint(true, 2021042100, 'assignfeedback', 'editpdf');
+    }
 
     return true;
 }

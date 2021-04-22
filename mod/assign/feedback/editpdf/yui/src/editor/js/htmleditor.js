@@ -53,8 +53,7 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
         var editorr,
             container,
             textarea,
-            bb,
-            button;
+            bb;
         this.editor = config.editor || null;
         bb = this.get('boundingBox');
         bb.addClass('assignfeedback_editpdf_htmleditor');
