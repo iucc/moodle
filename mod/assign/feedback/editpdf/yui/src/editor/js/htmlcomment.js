@@ -20,10 +20,10 @@
  */
 
 /**
- * Class representing a list of comments.
+ * Class representing a list of htmlcomments.
  *
  * @namespace M.assignfeedback_editpdf
- * @class comment
+ * @class htmlcomment
  * @param M.assignfeedback_editpdf.editor editor
  * @param Int gradeid
  * @param Int pageno
@@ -68,7 +68,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     this.y = parseInt(y, 10) || 0;
 
     /**
-     * Comment width
+     * Htmlcomment width
      * @property width
      * @type Int
      * @public
@@ -76,7 +76,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     this.width = parseInt(width, 10) || 0;
 
     /**
-     * Comment rawtext
+     * Htmlcomment rawtext
      * @property rawtext
      * @type String
      * @public
@@ -84,7 +84,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     this.rawtext = rawtext || '';
 
     /**
-     * Comment page number
+     * Htmlcomment page number
      * @property pageno
      * @type Int
      * @public
@@ -92,7 +92,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     this.pageno = pageno || 0;
 
     /**
-     * Comment background colour.
+     * Htmlcomment background colour.
      * @property colour
      * @type String
      * @public
@@ -108,7 +108,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     this.drawable = false;
 
     /**
-     * Boolean used by a timeout to delete empty comments after a short delay.
+     * Boolean used by a timeout to delete empty htmlcomments after a short delay.
      * @property deleteme
      * @type Boolean
      * @public
@@ -132,7 +132,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     this.menu = null;
 
     /**
-     * Clean a comment record, returning an oject with only fields that are valid.
+     * Clean a htmlcomment record, returning an oject with only fields that are valid.
      * @public
      * @method clean
      * @return {}
@@ -150,13 +150,12 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     };
 
     /**
-     * Draw a comment.
+     * Draw a htmlcomment.
      * @public
-     * @method draw_comment
-     * @param boolean focus - Set the keyboard focus to the new comment if true
+     * @method draw_htmlcomment
      * @return M.assignfeedback_editpdf.drawable
      */
-    this.draw = function(focus) {
+    this.draw = function() {
         var drawable = new M.assignfeedback_editpdf.drawable(this.editor),
             node,
             drawingcanvas = this.editor.get_dialogue_element(SELECTOR.DRAWINGCANVAS),
@@ -302,9 +301,9 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
                     this.drawable.store_position(container, windowlocation.x, windowlocation.y);
                 }
             }, null, this);
-            this.menu = new M.assignfeedback_editpdf.commentmenu({
+            this.menu = new M.assignfeedback_editpdf.htmlcommentmenu({
                 buttonNode: this.menulink,
-                comment: this
+                htmlcomment: this
             });
         }
     };
@@ -365,12 +364,12 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     };
 
     /**
-     * Promote the current edit to a real comment.
+     * Promote the current edit to a real htmlcomment.
      *
      * @public
      * @method init_from_edit
      * @param M.assignfeedback_editpdf.edit edit
-     * @return bool true if comment bound is more than min width/height, else false.
+     * @return bool true if htmlcomment bound is more than min width/height, else false.
      */
     this.init_from_edit = function(edit) {
         var bounds = new M.assignfeedback_editpdf.rect();
@@ -388,15 +387,14 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         this.y = bounds.y;
         this.endx = bounds.x + bounds.width;
         this.endy = bounds.y + bounds.height;
-        this.colour = edit.annotationcolour;
-        this.path = edit.stamp;
+        this.rawtext = '';
 
         // Min width and height is always more than 40px.
         return true;
     };
 
     /**
-     * Update comment position when rotating page.
+     * Update htmlcomment position when rotating page.
      * @public
      * @method updatePosition
      */
@@ -410,6 +408,43 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         container.setX(windowlocation.x);
         container.setY(windowlocation.y);
         this.drawable.store_position(container, windowlocation.x, windowlocation.y);
+    };
+
+    this.edit_htmlcomment = function(e) {
+        var htmleditor,
+            htmlcont,
+            textarea;
+        e.preventDefault();
+        var node = this.drawable.nodes[0].one('div');
+        this.menu.hide();
+        htmleditor = Y.one('#html_editoreditable');
+        htmleditor.set('innerHTML', this.rawtext);
+        if (!this.editor.htmleditorwindow) {
+            this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
+                editor: this
+            });
+            this.htmleditorwindow.show();
+        } else {
+            this.editor.htmleditorwindow.show();
+        }
+        htmlcont = Y.one('#editorcontainer');
+        htmlcont.on('blur', function() {
+            // Save the changes back to the comment.
+            textarea = Y.one('#html_editor');
+            this.rawtext = textarea.get('value');
+            node.set('innerHTML', this.rawtext);
+            this.width = parseInt(htmleditor.getStyle('width'), 10);
+            Y.use('mathjax', function() {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, node.getDOMNode()]);
+            });
+            // Trim.
+            if (this.rawtext.replace(/^\s+|\s+$/g, "") === '') {
+                // Delete empty comments.
+                this.deleteme = true;
+                Y.later(400, this, this.delete_htmlcomment_later);
+            }
+            this.editor.save_current_page();
+        }, this);
     };
 
 };

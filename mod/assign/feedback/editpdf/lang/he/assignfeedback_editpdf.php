@@ -26,3 +26,4 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['htmleditor'] = 'עורך מתמטי';
 $string['add'] = 'הוסף';
+$string['edithtml'] = 'Edit html';

@@ -288,7 +288,8 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
             'partialwarning',
             'draftchangessaved',
             'add',
-            'htmleditor'
+            'htmleditor',
+            'edithtml'
         ), 'assignfeedback_editpdf');
 
 

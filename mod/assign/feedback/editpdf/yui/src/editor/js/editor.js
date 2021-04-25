@@ -1196,7 +1196,7 @@ EDITOR.prototype = {
             htmlcomment = new M.assignfeedback_editpdf.htmlcomment(this);
             if (htmlcomment.init_from_edit(this.currentedit)) {
                 this.pages[this.currentpage].htmlcomments.push(htmlcomment);
-                this.drawables.push(htmlcomment.draw(true));
+                this.drawables.push(htmlcomment.draw());
             }
         } else if (this.currentedit.tool === 'comment') {
             if (this.currentdrawable) {
@@ -1412,7 +1412,7 @@ EDITOR.prototype = {
             this.drawables.push(page.comments[i].draw(false));
         }
         for (i = 0; i < page.htmlcomments.length; i++) {
-            this.drawables.push(page.htmlcomments[i].draw(false));
+            this.drawables.push(page.htmlcomments[i].draw());
         }
     },
 
