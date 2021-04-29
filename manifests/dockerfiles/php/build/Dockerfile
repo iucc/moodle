@@ -29,6 +29,8 @@ RUN set -eux; \
     	wget \
     	locales-all \
     	vim \
+    	texlive-full \
+    	texmaker \
     	;
 RUN set -eux; \
 	    apt-get install -y --no-install-recommends \

@@ -246,6 +246,29 @@ class assign_feedback_editpdf extends assign_feedback_plugin {
                         return true;
                     }
                 }
+
+                // Select all htmlcomments.
+                $drafthtmlcomments = page_editor::get_htmlcomments($sourcegrade->id, $i, true);
+                $nondrafthtmlcomments = page_editor::get_htmlcomments($grade->id, $i, false);
+                if (count($drafthtmlcomments) != count($nondrafthtmlcomments)) {
+                    return true;
+                } else {
+                    // Go for a closer inspection.
+                    $matches = 0;
+                    foreach ($nondrafthtmlcomments as $ndhtmlcomment) {
+                        foreach ($drafthtmlcomments as $dhtmlcomment) {
+                            foreach ($ndhtmlcomment as $key => $value) {
+                                if ($key != 'id' && $value != $dhtmlcomment->{$key}) {
+                                    continue 2;
+                                }
+                            }
+                            $matches++;
+                        }
+                    }
+                    if ($matches !== count($nondrafthtmlcomments)) {
+                        return true;
+                    }
+                }
             }
         }
         return false;

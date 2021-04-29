@@ -1644,6 +1644,15 @@ EDITOR.prototype = {
                         for (i = 0; i < oldcomments.length; i++) {
                             oldcomments[i].updatePosition();
                         }
+
+                        /**
+                         * Update Position of htmlcomments with relation to canvas coordinates.
+                         * Without this code, the htmlcomments will stay at their positions in windows/document coordinates.
+                         */
+                        var oldhtmlcomments = page.htmlcomments;
+                        for (i = 0; i < oldhtmlcomments.length; i++) {
+                            oldhtmlcomments[i].updatePosition();
+                        }
                         // Save Annotations.
                         return self.save_current_page();
                     } catch (e) {
