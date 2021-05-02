@@ -222,8 +222,19 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             // Delete empty htmlcomments.
             this.deleteme = true;
             Y.later(400, this, this.delete_htmlcomment_later);
-            Y.one('#html_editoreditable').set('innerHTML', ' ');
-            this.editor.htmleditorwindow.show();
+            if (document.getElementsByClassName('dir-rtl').length !== 0) {
+                Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: right;"><br></p>');
+            } else {
+                Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: left;"><br></p>');
+            }
+            if (!this.editor.htmleditorwindow) {
+                this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
+                    editor: this
+                });
+                this.htmleditorwindow.show();
+            } else {
+                this.editor.htmleditorwindow.show();
+            }
         }
         node.active = false;
         if (this.rawtext.replace(/^\s+|\s+$/g, "") !== '') {
@@ -231,7 +242,11 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             this.drawable = drawable;
             if (textarea) {
                 textarea.set('value', ' ');
-                Y.one('#html_editoreditable').set('innerHTML', ' ');
+                if (document.getElementsByClassName('dir-rtl').length !== 0) {
+                    Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: right;"><br></p>');
+                } else {
+                    Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: left;"><br></p>');
+                }
             }
         }
         return drawable;

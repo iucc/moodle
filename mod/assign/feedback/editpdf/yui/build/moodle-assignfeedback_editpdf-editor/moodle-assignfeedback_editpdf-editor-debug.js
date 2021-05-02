@@ -5127,11 +5127,6 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
             textarea,
             bb;
         this.editor = config.editor || null;
-        if (Y.one('.assignfeedback_editpdf_htmleditor #editorcontainer')) {
-            // Set the body content.
-            Y.one('#editorcontainer.hidden').remove();
-            HTMLEDITOR.superclass.initializer.call(this, config);
-        }
         bb = this.get('boundingBox');
         bb.addClass('assignfeedback_editpdf_htmleditor');
         editorr = this.get('editor');
@@ -5140,11 +5135,18 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
         textarea.removeClass('hidden');
         container.append(textarea);
 
-
+        Y.one('[name="savechanges"]').on('click', this.removeeditor);
+        Y.one('[name="saveandshownext"]').on('click', this.removeeditor);
+        Y.one('[name="saveandshownext"]').on('click', this.removeeditor);
         // Set the body content.
         this.set('bodyContent', container);
         HTMLEDITOR.superclass.initializer.call(this, config);
 
+    },
+    removeeditor: function () {
+        if (Y.one(".assignfeedback_editpdf_htmleditor")) {
+            Y.one(".assignfeedback_editpdf_htmleditor").remove();
+        }
     }
 },{
     NAME: HTMLEDITORNAME,
@@ -5404,8 +5406,19 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             // Delete empty htmlcomments.
             this.deleteme = true;
             Y.later(400, this, this.delete_htmlcomment_later);
-            Y.one('#html_editoreditable').set('innerHTML', ' ');
-            this.editor.htmleditorwindow.show();
+            if (document.getElementsByClassName('dir-rtl').length !== 0) {
+                Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: right;"><br></p>');
+            } else {
+                Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: left;"><br></p>');
+            }
+            if (!this.editor.htmleditorwindow) {
+                this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
+                    editor: this
+                });
+                this.htmleditorwindow.show();
+            } else {
+                this.editor.htmleditorwindow.show();
+            }
         }
         node.active = false;
         if (this.rawtext.replace(/^\s+|\s+$/g, "") !== '') {
@@ -5413,7 +5426,11 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             this.drawable = drawable;
             if (textarea) {
                 textarea.set('value', ' ');
-                Y.one('#html_editoreditable').set('innerHTML', ' ');
+                if (document.getElementsByClassName('dir-rtl').length !== 0) {
+                    Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: right;"><br></p>');
+                } else {
+                    Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: left;"><br></p>');
+                }
             }
         }
         return drawable;

@@ -55,11 +55,6 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
             textarea,
             bb;
         this.editor = config.editor || null;
-        if (Y.one('.assignfeedback_editpdf_htmleditor #editorcontainer')) {
-            // Set the body content.
-            Y.one('#editorcontainer.hidden').remove();
-            HTMLEDITOR.superclass.initializer.call(this, config);
-        }
         bb = this.get('boundingBox');
         bb.addClass('assignfeedback_editpdf_htmleditor');
         editorr = this.get('editor');
@@ -68,11 +63,18 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
         textarea.removeClass('hidden');
         container.append(textarea);
 
-
+        Y.one('[name="savechanges"]').on('click', this.removeeditor);
+        Y.one('[name="saveandshownext"]').on('click', this.removeeditor);
+        Y.one('[name="saveandshownext"]').on('click', this.removeeditor);
         // Set the body content.
         this.set('bodyContent', container);
         HTMLEDITOR.superclass.initializer.call(this, config);
 
+    },
+    removeeditor: function () {
+        if (Y.one(".assignfeedback_editpdf_htmleditor")) {
+            Y.one(".assignfeedback_editpdf_htmleditor").remove();
+        }
     }
 },{
     NAME: HTMLEDITORNAME,

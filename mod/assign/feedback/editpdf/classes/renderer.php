@@ -244,7 +244,7 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
 
         $body .= $canvas;
         $textarea = html_writer::tag('textarea', '', ["id" => "html_editor",
-                "class" => "editor", "rows" => "20", "cols" => "50"]);
+                "class" => "htmleditor", "rows" => "20", "cols" => "50"]);
         $textcontainer = html_writer::tag('div', $textarea);
         $body .= html_writer::tag('div', $textcontainer, ["id" => "editorcontainer", "class" => "hidden"]);
         $footer = '';
