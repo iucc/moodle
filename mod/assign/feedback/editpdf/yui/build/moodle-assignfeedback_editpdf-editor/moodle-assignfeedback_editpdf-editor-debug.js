@@ -5008,6 +5008,7 @@ EDITOR.prototype = {
         }
     }
 
+
 };
 
 Y.extend(EDITOR, Y.Base, EDITOR.prototype, {
@@ -5126,14 +5127,19 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
             textarea,
             bb;
         this.editor = config.editor || null;
+        if (Y.one('.assignfeedback_editpdf_htmleditor #editorcontainer')) {
+            // Set the body content.
+            Y.one('#editorcontainer.hidden').remove();
+            HTMLEDITOR.superclass.initializer.call(this, config);
+        }
         bb = this.get('boundingBox');
         bb.addClass('assignfeedback_editpdf_htmleditor');
-
         editorr = this.get('editor');
         container = Y.Node.create('<div/>');
         textarea = Y.one('#editorcontainer');
         textarea.removeClass('hidden');
         container.append(textarea);
+
 
         // Set the body content.
         this.set('bodyContent', container);

@@ -371,43 +371,9 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
         ), 'moodle');
         $this->page->requires->yui_module($modules,
                 'Y.M.editor_atto.Editor.init',
-                array($this->get_init_params_atto($textareaid, $options, null, $jsplugins)));
+                array($this->get_init_params_atto($textareaid, $options, null, $jsplugins)), '' , true);
 
         return $html;
-    }
-
-    /**
-     * Parse the custom toolbar setting.
-     *
-     * @param string $customtoolbar
-     * @return array csv toolbar lines
-     */
-    function parse_toolbar_setting($customtoolbar) {
-        $result = array();
-        $customtoolbar = trim($customtoolbar);
-        if ($customtoolbar === '') {
-            return $result;
-        }
-        $customtoolbar = str_replace("\r", "\n", $customtoolbar);
-        $customtoolbar = strtolower($customtoolbar);
-        $i = 0;
-        foreach (explode("\n", $customtoolbar) as $line) {
-            $line = preg_replace('/[^a-z0-9_,\|\-]/', ',', $line);
-            $line = str_replace('|', ',|,', $line);
-            $line = preg_replace('/,,+/', ',', $line);
-            $line = trim($line, ',|');
-            if ($line === '') {
-                continue;
-            }
-            if ($i == 10) {
-                // Maximum is ten lines, merge the rest to the last line.
-                $result[9] = $result[9] . ',' . $line;
-            } else {
-                $result[] = $line;
-                $i++;
-            }
-        }
-        return $result;
     }
 
     function get_init_params_atto($elementid, array $options = null, array $fpoptions = null, $plugins = null) {
@@ -442,9 +408,6 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
                 'plugins' => $plugins,
                 'pageHash' => $pagehash,
         );
-        if ($fpoptions) {
-            $params['filepickeroptions'] = $fpoptions;
-        }
         return $params;
     }
 }

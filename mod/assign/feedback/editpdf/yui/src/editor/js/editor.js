@@ -1719,6 +1719,7 @@ EDITOR.prototype = {
         }
     }
 
+
 };
 
 Y.extend(EDITOR, Y.Base, EDITOR.prototype, {
