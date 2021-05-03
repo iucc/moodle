@@ -106,8 +106,6 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
      * @return string
      */
     public function render_assignfeedback_editpdf_widget(assignfeedback_editpdf_widget $widget) {
-        global $CFG;
-
         $html = '';
 
         $html .= html_writer::div(get_string('jsrequired', 'assignfeedback_editpdf'), 'hiddenifjs');
@@ -300,11 +298,17 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
                 'areamaxbytes' => FILE_AREA_MAX_BYTES_UNLIMITED, 'context' => $this->page->context, 'noclean' => 0,
                 'trusttext' => 0, 'return_types' => 15, 'enable_filemanagement' => true, 'removeorphaneddrafts' => true,
                 'autosave' => false, 'trusted');
-        if (array_key_exists('atto:toolbar', $options)) {
-            $configstr = $options['atto:toolbar'];
-        } else {
-            $configstr = get_config('editor_atto', 'toolbar');
-        }
+        $configstr = "collapse = collapse
+                    style1 = title, bold, italic, fontcolor, backcolor
+                    list = unorderedlist, orderedlist, indent
+                    links = link
+                    style2 = underline, strike, subscript, superscript
+                    align = align,rtl
+                    insert = equation, charmap, table, clear
+                    undo = undo
+                    accessibility = accessibilitychecker, accessibilityhelper
+                    math = wiris
+                    other = html";
 
         $grouplines = explode("\n", $configstr);
 
@@ -320,7 +324,6 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
         }
 
         $modules = array('moodle-editor_atto-editor');
-        $options['context'] = empty($options['context']) ? \context_system::instance() : $options['context'];
 
         $jsplugins = array();
         foreach ($groups as $group => $plugins) {
@@ -371,7 +374,7 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
         ), 'moodle');
         $this->page->requires->yui_module($modules,
                 'Y.M.editor_atto.Editor.init',
-                array($this->get_init_params_atto($textareaid, $options, null, $jsplugins)), '' , true);
+                array($this->get_init_params_atto($textareaid, $options, null, $jsplugins)), '', true);
 
         return $html;
     }
@@ -380,8 +383,6 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
         global $PAGE;
 
         $directionality = get_string('thisdirection', 'langconfig');
-        $strtime = get_string('strftimetime');
-        $strdate = get_string('strftimedaydate');
         $lang = current_language();
         $autosave = true;
         $autosavefrequency = get_config('editor_atto', 'autosavefrequency');
