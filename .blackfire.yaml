@@ -1,0 +1,146 @@
+# Read more about .blackfire.yaml at https://blackfire.io/docs/testing-cookbooks/tests
+metrics:
+  moodle:
+    label: "Moodle"
+    layer: moodle
+    marker: "Moodle Marker"
+    description: "Moodle LMS Metrics"
+    timeline: true
+  moodle.cache:
+    label: 'Moodle Caches'
+    description: 'Moodle cache Metrics'
+    layer: moodle
+  moodle.cache.language:
+    label: "Moodle language Cache"
+    description: 'number of moodle lang string filed called'
+    layer: moodle.cache
+    matching_calls:
+      php:
+        - callee:
+            selector: "=file_exists"
+            argument:
+              1: /.*\/lang\/en\/.*\.php$/
+  moodle.cache.theme:
+    label: "Moodle Theme assets Cache"
+    description: 'Normally all theme images and style sheets are cached in browsers and on the server for a very long time, for performance. If you are designing themes or developing code then you probably want to turn this mode on so that you are not served cached versions. Warning: this will make your site slower for all users! Alternatively, you can also reset the theme caches manually from the Theme selection page.'
+    layer: moodle.cache
+    matching_calls:
+      php:
+        - callee:
+            selector: "=theme_config::get_css_files"
+            argument:
+              1: "=true"
+        - callee:
+            selector: "=css_send_uncached_css"
+        - callee:
+            selector: "=send_uncached_image"
+
+tests:
+  "All pages are fast":
+    path: "/.*"
+    assertions:
+      - main.wall_time < 3s
+      - main.memory < 128Mb
+  "Moodle php extensions required":
+    path: "/.*"
+    assertions:
+      - is_extension_loaded("iconv")
+      - is_extension_loaded("mbstring")
+      - is_extension_loaded("curl")
+      - is_extension_loaded("openssl")
+      - is_extension_loaded("tokenizer")
+      - is_extension_loaded("xmlrpc")
+      - is_extension_loaded("soap")
+      - is_extension_loaded("ctype")
+      - is_extension_loaded("zip")
+      - is_extension_loaded("zlib")
+      - is_extension_loaded("gd")
+      - is_extension_loaded("simplexml")
+      - is_extension_loaded("spl")
+      - is_extension_loaded("pcre")
+      - is_extension_loaded("dom")
+      - is_extension_loaded("xml")
+      - is_extension_loaded("xmlreader")
+      - is_extension_loaded("intl")
+      - is_extension_loaded("json")
+      - is_extension_loaded("fileinfo")
+      - is_extension_loaded("sodium")
+  'Moodle "opcache.enable" should be enabled':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    command: '.*'
+    assertions:
+      - { label: null, expression: 'runtime.configuration.opcache_enable === true' }
+    exclude: { }
+  'Moodle "opcache.enable_file_override" should be disabled':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    command: '.*'
+    assertions:
+      - { label: null, expression: 'runtime.configuration.opcache_enable_file_override === false' }
+    when: 'is_extension_loaded("zend_opcache")'
+    exclude: {  }
+  'Moodle "opcache.validate_timestamps" should be enabled':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    command: '.*'
+    assertions:
+      - { label: null, expression: 'runtime.configuration.opcache_validate_timestamps === true' }
+    when: 'is_extension_loaded("zend_opcache")'
+    exclude: {  }
+  'Moodle "opcache.save_comments" should be enabled':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    command: '.*'
+    assertions:
+      - { label: null, expression: 'runtime.configuration.opcache_save_comments === true' }
+    when: 'is_extension_loaded("zend_opcache")'
+    exclude: {  }
+  'Moodle "opcache.max_accelerated_files" should be grater or equal to 11535':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    command: '.*'
+    assertions:
+      - { label: null, expression: 'runtime.configuration.opcache_max_accelerated_files >= 11535' }
+    when: 'is_extension_loaded("zend_opcache")'
+    exclude: {  }
+  'Moodle Cache all language strings Should be Enable':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    assertions:
+      - label: ''
+        expression: 'metrics.moodle.cache.language.count <=0'
+  'Moodle Cache Theme CSS Should be Enable':
+    path:
+      - '/.*'
+    methods:
+      - ANY
+    assertions:
+      - label: ''
+        expression: 'metrics.moodle.cache.theme.count <=0'
+
+recommendations:
+  php.quality.enable_opcache_file_override:
+    enabled: false
+
+# Read more about writing scenarios at https://blackfire.io/docs/builds-cookbooks/scenarios
+scenarios: |
+  #!blackfire-player
+
+  scenario
+      name 'The homepage should answer with a 200 status code'
+
+      visit url('/')
+          expect status_code() == 200

@@ -1,0 +1,243 @@
+#Following instructions (as of 2020-04-01): https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
+#Kaniko docs are here: https://github.com/GoogleContainerTools/kaniko
+#While this example shows building to multiple registries for all branches, with a few modifications
+#  it can be used to build non-master branches to a "dev" container registry and only build master to
+#  a production container registry
+image:
+  name: gcr.io/kaniko-project/executor:debug
+  entrypoint: [""]
+
+variables:
+  KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
+  VERSIONLABELMETHOD: "OnlyIfThisCommitHasVersion" # options: "OnlyIfThisCommitHasVersion","LastVersionTagInGit"
+  IMAGE_LABELS: >
+    --label org.opencontainers.image.vendor=$CI_SERVER_URL/$GITLAB_USER_LOGIN
+    --label org.opencontainers.image.authors=$CI_SERVER_URL/$GITLAB_USER_LOGIN
+    --label org.opencontainers.image.revision=$CI_COMMIT_SHA
+    --label org.opencontainers.image.source=$CI_PROJECT_URL
+    --label org.opencontainers.image.documentation=$CI_PROJECT_URL
+    --label org.opencontainers.image.licenses=$CI_PROJECT_URL
+    --label org.opencontainers.image.url=$CI_PROJECT_URL
+    --label vcs-url=$CI_PROJECT_URL
+    --label com.gitlab.ci.user=$CI_SERVER_URL/$GITLAB_USER_LOGIN
+    --label com.gitlab.ci.email=$GITLAB_USER_EMAIL
+    --label com.gitlab.ci.tagorbranch=$CI_COMMIT_REF_NAME
+    --label com.gitlab.ci.pipelineurl=$CI_PIPELINE_URL
+    --label com.gitlab.ci.commiturl=$CI_PROJECT_URL/commit/$CI_COMMIT_SHA
+    --label com.gitlab.ci.cijoburl=$CI_JOB_URL
+    --label com.gitlab.ci.mrurl=$CI_PROJECT_URL/-/merge_requests/$CI_MERGE_REQUEST_ID
+  IMAGE_SUFFIX: ""
+  VERSIONLABEL: ""
+  DOCKER_FILE: Dockerfile
+  CLIENT_NAME: idc
+  MOODLE_VERSION: MOODLE_39_STABLE
+  GOOGLE_APPLICATION_CREDENTIALS: /kaniko/.config/gcloud/docker_credential_gcr_config.json
+stages:
+  - php base
+  - test prepare
+  - test
+  - release
+
+php-base-fpm-image-build:
+  stage: php base
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - /kaniko/cache
+  variables:
+    DOCKER_FILE: manifests/dockerfiles/php/build/Dockerfile
+  script:
+    - BUILDDATE="'$(date '+%FT%T%z' | sed -E -n 's/(\+[0-9]{2})([0-9]{2})$/\1:\2/p')'" #rfc 3339 date
+    - IMAGE_LABELS="$IMAGE_LABELS --label org.opencontainers.image.created=$BUILDDATE --label build-date=$BUILDDATE"
+    - BUILDTITLE=$(echo $CI_PROJECT_TITLE | tr " " "_")
+    - IMAGE_LABELS="$IMAGE_LABELS --label org.opencontainers.image.title=$BUILDTITLE --label org.opencontainers.image.description=$BUILDTITLE"
+    - IMAGE_LABELS="$IMAGE_LABELS --label org.opencontainers.image.ref.name=$CI_REGISTRY_IMAGE/php:7.4-fpm"
+    - IMAGE_LABELS="$IMAGE_LABELS --label org.opencontainers.image.version=$CI_COMMIT_TAG"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$CI_DOCKERUB_PASSWORD\"},\"sysbindcloud.azurecr.io\":{\"auth\":\"$CI_ACR_PASSWORD\"},\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}},\"credHelpers\":{\"gcr.io\":\"gcloud\",\"us.gcr.io\":\"gcloud\",\"eu.gcr.io\":\"gcloud\",\"asia.gcr.io\":\"gcloud\",\"staging-k8s.gcr.io\":\"gcloud\",\"marketplace.gcr.io\":\"gcloud\"}}" > /kaniko/.docker/config.json
+    - mkdir -p /kaniko/cache
+    - echo -n $(cat $GCP_GITLAB_SERVICEACCOUNT) > /kaniko/.config/gcloud/docker_credential_gcr_config.json
+    - docker-credential-gcr configure-docker
+    - |
+      echo "Building and shipping next images:"
+      echo "****************************************************************************"
+      echo "* eu.gcr.io/zabbixtest-906/$CLIENT_NAME/php:7.4-fpm                       *"
+      echo "****************************************************************************"
+      /kaniko/executor --cache --cache-dir=/kaniko/cache --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/$DOCKER_FILE \
+      $KANIKO_CACHE_ARGS --destination=eu.gcr.io/zabbixtest-906/$CLIENT_NAME/php:7.4-fpm  --destination=$CI_REGISTRY_IMAGE/php:7.4-fpm $IMAGE_LABELS
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+      when: always
+    - if: '$FORCE_BASE_BUILD == "true"'
+      when: manual
+
+build_vendors:
+  image:
+    name: composer:1.10.17
+  variables:
+    NVM_VERSION: 'lts/fermium'
+  stage: test prepare
+  script:
+    - composer install --prefer-dist --no-interaction
+  artifacts:
+    paths:
+      - vendor
+    expire_in: 30 days
+  rules:
+    - if: '$FORCE_BASE_BUILD == "true"'
+      when: manual
+    - if: $CI_COMMIT_TAG =~ /^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+      changes:
+        - composer.json
+        - composer.lock
+
+build_changes:
+  image:
+    name: eu.gcr.io/zabbixtest-906/$CLIENT_NAME/php:7.4-fpm
+  stage: test prepare
+  before_script:
+    - apt install -y git
+  script:
+    - mkdir moodlehq
+    - git clone https://github.com/moodle/moodle.git moodlehq --single-branch -b $MOODLE_VERSION
+    - git clone https://github.com/moodlehq/moodle-local_ci.git ${CI_PROJECT_DIR}/local/ci
+    - export gitdir=$CI_PROJECT_DIR
+    - export gitbranch=HEAD
+    - export format=excluded_comma_wildchars
+    - ./local/ci/define_excluded/define_excluded.sh > ignored_path
+    - |
+      set +e
+      for mfile in $(git log --name-only --pretty=oneline --full-index HEAD origin/master2022 | grep -vE '^[0-9a-f]{40} ' | sort | uniq); do
+        if [[ "${mfile}" =~ (^|/)vendor/ ]]; then
+          continue
+        fi
+        if [ -f "${CI_PROJECT_DIR}/${mfile}" ] && [[ "${mfile}" =~ .php$ ]] && [ ! -f "moodlehq/${mfile}" ]; then
+          echo "${CI_PROJECT_DIR}/${mfile}" >>"${CI_PROJECT_DIR}/php_files"
+        fi
+      done
+  artifacts:
+    paths:
+      - php_files
+      - ignored_path
+  rules:
+    - if: '$CODE_QUALITY_DISABLED'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Run code quality job in merge request pipelines
+      allow_failure: true
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      allow_failure: true
+    - if: '$CI_COMMIT_TAG'
+      allow_failure: true
+
+sast:
+  stage: test
+  variables:
+    SAST_EXCLUDED_ANALYZERS: "bandit, brakeman, flawfinder, kubesec, gosec, mobsf, pmd-apex, spotbugs, semgrep"
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+code_quality:
+  stage: test
+  image:
+    name: eu.gcr.io/zabbixtest-906/$CLIENT_NAME/php:7.4-fpm
+  before_script:
+    - apt install -y git
+  script:
+    - git clone https://github.com/SysBind/moodle-local_codechecker.git ${CI_PROJECT_DIR}/local/codechecker --single-branch -b support_gitlabci_codequality
+    - cd $CI_PROJECT_DIR
+    - git fetch
+    - cp $CI_PROJECT_DIR/manifests/dockerfiles/Dev/php/php.ini /usr/local/etc/php/php.ini
+    - |
+      set +e
+      if [ $(cat "${CI_PROJECT_DIR}/php_files" |  grep  --regexp='\.php$' | wc -l) -gt 0 ]; then
+        $CI_PROJECT_DIR/local/codechecker/phpcs/bin/phpcs --report=gitlab --standard="$CI_PROJECT_DIR/local/codechecker/moodle" \
+        --file-list=php_files --ignore=$(cat $CI_PROJECT_DIR/ignored_path) --report-file="gl-code-quality-report.json" --basepath="${CI_PROJECT_DIR}"
+      else
+        echo "[]" > $CI_PROJECT_DIR/gl-code-quality-report.json
+      fi
+      rm -rf {CI_PROJECT_DIR}/local/codechecker
+      set -e
+  artifacts:
+    paths:
+      - gl-code-quality-report.json
+    reports:
+      codequality: gl-code-quality-report.json
+    expire_in: 1 week
+  dependencies:
+    - build_changes
+  needs:
+    - job: php-base-fpm-image-build
+    - job: build_changes
+  rules:
+    - if: '$CODE_QUALITY_DISABLED'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Run code quality job in merge request pipelines
+      allow_failure: true
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      allow_failure: true
+    - if: '$CI_COMMIT_TAG'
+      allow_failure: true
+
+unittest:
+  stage: test
+  services:
+    - postgres:13-alpine
+    - redis:latest
+  variables:
+    POSTGRES_DB: moodle
+    POSTGRES_USER: moodle
+    POSTGRES_PASSWORD: "moodle"
+    POSTGRES_HOST_AUTH_METHOD: trust
+  image: eu.gcr.io/zabbixtest-906/$CLIENT_NAME/php:7.4-fpm
+  dependencies:
+    - build_vendors
+    - build_changes
+  before_script:
+    - apt install -y git
+  script:
+    - apt-get install -y --no-install-recommends $PHPIZE_DEPS
+    - pecl install xdebug
+    - docker-php-ext-enable xdebug
+    - mkdir -p /var/www/moodledata/phpunit
+    - chmod -R 02777 /var/www/moodledata
+    - cp manifests/ci/config-unittest.php config.php
+    - cp $CI_PROJECT_DIR/manifests/dockerfiles/Dev/php/php.ini /usr/local/etc/php/php.ini
+    - cp manifests/ci/docker-php-local-xdebug.ini /usr/local/etc/php/conf.d/docker-php-local-xdebug.ini
+    - php admin/tool/phpunit/cli/init.php
+    - chown -R www-data:www-data vendor
+    - git clone https://github.com/moodlehq/moodle-local_ci.git ${CI_PROJECT_DIR}/local/ci
+    - php $CI_PROJECT_DIR/manifests/ci/installed_plugins.php --basedir=$CI_PROJECT_DIR --pathtochangedfiles=$CI_PROJECT_DIR/php_files
+    - rm -rf  ${CI_PROJECT_DIR}/local/ci
+    - vendor/bin/phpunit --testsuite=$(cat $CI_PROJECT_DIR/changed_plugins) --log-junit unittest.xml --coverage-clover coverage.xml
+  artifacts:
+    paths:
+      - changed_pluginsplugins
+      - unittest.xml
+      - coverage.xml
+    reports:
+      junit: unittest.xml
+      cobertura: coverage.xml
+  needs:
+    - job: php-base-fpm-image-build
+    - job: build_vendors
+    - job: build_changes
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+      when: always
+      allow_failure: true
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: code_quality
+    - job: sast
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+  script:
+    - echo 'running release_job'
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    description: '$(cat $CI_PROJECT_DIR/manifests/README.md)'  # $EXTRA_DESCRIPTION must be defined
+    tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_TAG'

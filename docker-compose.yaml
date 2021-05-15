@@ -1,0 +1,136 @@
+version: "3.9"
+services:
+  lb:
+    image: nginx:alpine
+    volumes:
+      - ./manifests/dockerfiles/Dev/loadblancer/proxy.conf.template:/etc/nginx/templates/proxy.conf.template
+      - ${SSL_CERT_DIR}:/etc/nginx/ssl
+      - ./manifests/dockerfiles/Dev/loadblancer/nginx.conf:/etc/nginx/nginx.conf
+      - ${SSL_CA_DIR}:/etc/nginx/ca
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - MOODLE_IUCC_DOMAIN
+      - MOODLE_MAILHOG_DOMAIN
+    security_opt:
+      - label:disable
+    depends_on:
+      - moodle-web
+      - mailhog
+    networks:
+      iucc:
+        aliases:
+          - ${MOODLE_IUCC_DOMAIN}.sysbind.test
+          - moodle-behat.sysbind.test
+          - ${MOODLE_MAILHOG_DOMAIN}.sysbind.test
+
+  moodle-web:
+    image: nginx:1.19-alpine
+    environment:
+      - PHP_BACKEND=moodle-php
+    volumes:
+      - ./manifests/dockerfiles/Dev/nginx/moodle.conf.template:/etc/nginx/templates/default.conf.template
+      - ./manifests/dockerfiles/Dev/nginx/nginx_moodlebackend.conf:/etc/nginx/nginx.conf
+      - ${MOODLE_CODE_PATH_HOST}:/var/www/html
+      - ${MOODLE_DATA_PATH_HOST}:/var/www/moodledata
+      - ${SSL_CA_DIR}:/etc/nginx/ca
+    security_opt:
+      - label:disable
+    networks:
+      - iucc
+
+  moodle-php:
+    image: gitlab.sysbind.biz:4567/developers/moodle-iucc/php:7.4-fpm-dev.2022
+    volumes:
+      - ${MOODLE_CODE_PATH_HOST}:/var/www/html
+      - ${MOODLE_DATA_PATH_HOST}:/var/www/moodledata
+      - ./manifests/dockerfiles/Dev/php/docker-php-local-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-local-xdebug.ini
+      - ./manifests/dockerfiles/Dev/php/php.ini-development:/usr/local/etc/php/php.ini
+      - ./manifests/dockerfiles/scripts/GeoLite2-City/GeoLite2-City.mmdb:/var/lib/sitedata/GeoLite2-City.mmdb
+      - ${SSL_CA_DIR}:/usr/local/share/ca-certificates/rootCA.pem
+    build:
+      context: .
+      dockerfile: manifests/dockerfiles/php/build/Dockerfile
+      args:
+        APP_ENV: dev
+        UID: 1000
+        PHP_IDE_CONFIG: "serverName=iucc"
+        XDEBUG_CONFIG: "idekey=iucc"
+        REMOTE_HOST: ${DOCKER_HOST_IP}
+    environment:
+      UID: 1000
+      REMOTE_HOST: ${DOCKER_HOST_IP}
+      PHP_IDE_CONFIG: "serverName=iucc"
+      XDEBUG_CONFIG: "idekey=iucc"
+    security_opt:
+      - label:disable
+    networks:
+      - iucc
+
+  moodle-pgdb:
+    image: postgres:13
+    volumes:
+      - ${POSTGRES_DATA_PATH_HOST}:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: sysbind
+      POSTGRES_PASSWORD: sysbinddevops
+    ports:
+      - "5432:5432"
+    security_opt:
+      - label:disable
+    networks:
+      - iucc
+
+  redis-session:
+    image: redis:6-alpine
+    networks:
+      - iucc
+
+  redis-cache:
+    image: redis:6-alpine
+    networks:
+      - iucc
+
+  mailhog:
+    image: mailhog/mailhog
+    security_opt:
+      - label:disable
+    networks:
+      - iucc
+
+  selenium-hub:
+    image: selenium/hub:4.0.0
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+    networks:
+      - iucc
+
+  chrome:
+    image: selenium/node-chrome-debug:3.141.59
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+    ports:
+      - 5901:5900
+    networks:
+      - iucc
+
+  blackfire:
+    image: blackfire/blackfire:2
+    environment:
+      BLACKFIRE_LOG_LEVEL: 4
+      BLACKFIRE_SERVER_ID: ${BLACKFIRE_SERVER_ID}
+      BLACKFIRE_SERVER_TOKEN: ${BLACKFIRE_SERVER_TOKEN}
+      BLACKFIRE_CLIENT_ID: ${BLACKFIRE_CLIENT_ID}
+      BLACKFIRE_CLIENT_TOKEN: ${BLACKFIRE_CLIENT_TOKEN}
+    networks:
+      - iucc
+
+networks:
+  iucc:

@@ -1,0 +1,6 @@
+#!/bin/sh
+unoconvCluster="unoconv-cluster"
+if [ $APP_ENV = "testing" ]; then
+	unoconvCluster="127.0.0.1"
+fi
+/usr/bin/unoconv --server=$unoconvCluster "$@"
