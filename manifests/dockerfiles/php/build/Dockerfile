@@ -44,21 +44,22 @@ RUN apt update && apt install -y locales \
 
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 RUN install-php-extensions \
+        gd \
         iconv \
+        igbinary \
+        imagick \
         intl \
-        soap \
-        xml \
-        xmlrpc \
+        lzf \
         opcache \
         pdo_pgsql \
         pgsql \
-        gd \
-        xsl \
-        zip \
-        igbinary \
-        lzf \
         redis \
-        xdebug
+        soap \
+        xdebug \
+        xml \
+        xmlrpc \
+        xsl \
+        zip
 
 RUN set -xe; \
     usermod -u "$UID" www-data; \
@@ -94,21 +95,23 @@ RUN mkdir -p /var/local/cache \
 	&& chmod 775 /var/local/cache
 
 RUN set -eux; \
+        apt-get update; \
     	apt-get install -y --no-install-recommends \
             aspell \
-            ghostscript \
-            graphviz \
-            python3 \
-            libreoffice \
-            sassc \
-            wget \
-            vim \
-            git \
             ca-certificates \
             curl \
             gawk \
+            ghostscript \
+            git \
+            graphviz \
+            libreoffice \
             mawk \
+            python3 \
+            sassc \
             sendmail \
+            texlive-full \
+            vim \
+            wget \
         ; \
         rm -rf /var/lib/apt/lists/*
 

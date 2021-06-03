@@ -34,7 +34,7 @@ var HTMLEDITOR = function(config) {
     config.width = 'auto';
     config.visible = false;
     config.headerContent = M.util.get_string('htmleditor', 'assignfeedback_editpdf');
-    config.footerContent = '';
+    config.footerContent = '<button type="submit" class="btn btn-primary" name="drowcontent">Save changes</button>';
     HTMLEDITOR.superclass.constructor.apply(this, [config]);
 };
 
@@ -65,10 +65,10 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
 
         Y.one('[name="savechanges"]').on('click', this.removeeditor);
         Y.one('[name="saveandshownext"]').on('click', this.removeeditor);
-        Y.one('[name="saveandshownext"]').on('click', this.removeeditor);
         // Set the body content.
         this.set('bodyContent', container);
         HTMLEDITOR.superclass.initializer.call(this, config);
+        Y.one('[name="drowcontent"]').on('click', this.hide, this);
 
     },
     removeeditor: function () {
