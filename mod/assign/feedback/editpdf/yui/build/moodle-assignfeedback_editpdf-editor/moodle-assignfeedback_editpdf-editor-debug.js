@@ -5106,7 +5106,7 @@ var HTMLEDITOR = function(config) {
     config.width = 'auto';
     config.visible = false;
     config.headerContent = M.util.get_string('htmleditor', 'assignfeedback_editpdf');
-    config.footerContent = '<button type="submit" class="btn btn-primary" name="drowcontent">Save changes</button>';
+    config.footerContent = '';
     HTMLEDITOR.superclass.constructor.apply(this, [config]);
 };
 
@@ -5140,7 +5140,25 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
         // Set the body content.
         this.set('bodyContent', container);
         HTMLEDITOR.superclass.initializer.call(this, config);
-        Y.one('[name="drowcontent"]').on('click', this.hide, this);
+        this.addButton({
+            label: M.util.get_string('confirm', 'moodle'),
+            action: function(e) {
+                e.preventDefault();
+                this.hide();
+            },
+            classNames: 'btn btn-primary',
+            section: Y.WidgetStdMod.FOOTER
+        });
+        this.addButton({
+            label: M.util.get_string('cancel', 'moodle'),
+            action: function(e) {
+                e.preventDefault();
+                Y.one('#html_editor').set('value', ' ');
+                this.hide();
+            },
+            classNames: 'btn btn-secondary',
+            section: Y.WidgetStdMod.FOOTER
+        });
 
     },
     removeeditor: function () {
