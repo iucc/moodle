@@ -438,9 +438,6 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
                 editor: this
             });
-            this.htmleditorwindow.show();
-        } else {
-            this.editor.htmleditorwindow.show();
         }
         htmlcont = Y.one('#editorcontainer');
         htmlcont.on('blur', function() {
@@ -460,6 +457,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             }
             this.editor.save_current_page();
         }, this);
+        this.htmleditorwindow.show();
     };
 
 };
