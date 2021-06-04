@@ -5141,6 +5141,7 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
         this.set('bodyContent', container);
         HTMLEDITOR.superclass.initializer.call(this, config);
         this.addButton({
+            name: 'confirm',
             label: M.util.get_string('confirm', 'moodle'),
             action: function(e) {
                 e.preventDefault();
@@ -5150,6 +5151,7 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
             section: Y.WidgetStdMod.FOOTER
         });
         this.addButton({
+            name: 'cancel',
             label: M.util.get_string('cancel', 'moodle'),
             action: function(e) {
                 e.preventDefault();
@@ -5354,21 +5356,21 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
     /**
      * Draw a htmlcomment.
      * @public
-     * @method draw_htmlcomment
+     * @method draw
      * @return M.assignfeedback_editpdf.drawable
      */
-    this.draw = function() {
+    this.draw = function(editnode) {
         var drawable = new M.assignfeedback_editpdf.drawable(this.editor),
-            node,
             drawingcanvas = this.editor.get_dialogue_element(SELECTOR.DRAWINGCANVAS),
             container,
+            node,
             menu,
             position,
             scrollheight,
             textarea;
         menu = Y.Node.create('<a href="#"><img src="' + M.util.image_url('t/contextmenu', 'core') + '"/></a>');
         // // Lets add a contenteditable div.
-        node = Y.Node.create('<div/>');
+        node = editnode || Y.Node.create('<div/>');
         node.addClass('htmlcomment');
         container = Y.Node.create('<div class="htmlcommentdrawable"/>');
         this.menulink = menu;
@@ -5427,15 +5429,12 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
             if (document.getElementsByClassName('dir-rtl').length !== 0) {
                 Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: right;"><br></p>');
             } else {
-                Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: left;"><br></p>');
+                Y.one('#html_editoreditable').set('innerHTML', '<p dir="ltr" style="text-align: left;"><br></p>');
             }
             if (!this.editor.htmleditorwindow) {
-                this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
+                this.editor.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
                     editor: this
                 });
-                this.htmleditorwindow.show();
-            } else {
-                this.editor.htmleditorwindow.show();
             }
         }
         node.active = false;
@@ -5447,7 +5446,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
                 if (document.getElementsByClassName('dir-rtl').length !== 0) {
                     Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: right;"><br></p>');
                 } else {
-                    Y.one('#html_editoreditable').set('innerHTML', '<p dir="rtl" style="text-align: left;"><br></p>');
+                    Y.one('#html_editoreditable').set('innerHTML', '<p dir="ltr" style="text-align: left;"><br></p>');
                 }
             }
         }
@@ -5627,39 +5626,43 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         this.drawable.store_position(container, windowlocation.x, windowlocation.y);
     };
 
+    /**
+     * Edit exist html comment
+     * @public
+     * @method edit_htmlcomment
+     * @param e
+     */
     this.edit_htmlcomment = function(e) {
         var htmleditor,
-            htmlcont,
-            textarea;
+            origtext,
+            node;
         e.preventDefault();
-        var node = this.drawable.nodes[0].one('div');
         this.menu.hide();
+        node = this.drawable.nodes[0].one('div');
         htmleditor = Y.one('#html_editoreditable');
+        origtext = this.rawtext;
         htmleditor.set('innerHTML', this.rawtext);
         if (!this.editor.htmleditorwindow) {
-            this.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
+            this.editor.htmleditorwindow = new M.assignfeedback_editpdf.htmleditor({
                 editor: this
             });
         }
-        htmlcont = Y.one('#editorcontainer');
-        htmlcont.on('blur', function() {
-            // Save the changes back to the comment.
-            textarea = Y.one('#html_editor');
-            this.rawtext = textarea.get('value');
-            node.set('innerHTML', this.rawtext);
-            this.width = parseInt(htmleditor.getStyle('width'), 10);
-            Y.use('mathjax', function() {
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, node.getDOMNode()]);
-            });
-            // Trim.
-            if (this.rawtext.replace(/^\s+|\s+$/g, "") === '') {
-                // Delete empty comments.
-                this.deleteme = true;
-                Y.later(400, this, this.delete_htmlcomment_later);
-            }
-            this.editor.save_current_page();
+        var htmleditorwindow = this.editor.htmleditorwindow;
+        var cancelbuton = htmleditorwindow.getButton('cancel', Y.WidgetStdMod.FOOTER);
+        cancelbuton.on('click', function (e) {
+            e.preventDefault();
+            this.rawtext = origtext;
+            htmleditorwindow.hide();
         }, this);
-        this.htmleditorwindow.show();
+        var confirmbutton = htmleditorwindow.getButton('confirm', Y.WidgetStdMod.FOOTER);
+        confirmbutton.on('click', function (){
+            // Save the changes back to the comment.
+            var textarea = Y.one('#html_editor');
+            this.rawtext = textarea.get('value');
+            this.draw(node);
+            htmleditorwindow.hide();
+        }, this);
+        htmleditorwindow.show();
     };
 
 };

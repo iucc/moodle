@@ -69,6 +69,7 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
         this.set('bodyContent', container);
         HTMLEDITOR.superclass.initializer.call(this, config);
         this.addButton({
+            name: 'confirm',
             label: M.util.get_string('confirm', 'moodle'),
             action: function(e) {
                 e.preventDefault();
@@ -78,6 +79,7 @@ Y.extend(HTMLEDITOR, M.core.dialogue, {
             section: Y.WidgetStdMod.FOOTER
         });
         this.addButton({
+            name: 'cancel',
             label: M.util.get_string('cancel', 'moodle'),
             action: function(e) {
                 e.preventDefault();
