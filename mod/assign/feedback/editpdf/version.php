@@ -27,3 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 $plugin->version   = 2021042100;
 $plugin->requires  = 2020060900;
 $plugin->component = 'assignfeedback_editpdf';
+$plugin->dependencies = [
+    'editor_atto' => ANY_VERSION,
+    'filter_mathjaxloader' => '2020061500',
+    'filter_tex' => '2020061500',
+];
