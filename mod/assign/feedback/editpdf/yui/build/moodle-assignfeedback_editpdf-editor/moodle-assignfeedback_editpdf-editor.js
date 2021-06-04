@@ -5107,6 +5107,7 @@ var HTMLEDITOR = function(config) {
     config.visible = false;
     config.headerContent = M.util.get_string('htmleditor', 'assignfeedback_editpdf');
     config.footerContent = '';
+    config.closeButton = false;
     HTMLEDITOR.superclass.constructor.apply(this, [config]);
 };
 
