@@ -4,6 +4,7 @@ services:
     image: nginx:alpine
     volumes:
       - ./manifests/dockerfiles/Dev/loadblancer/proxy.conf.template:/etc/nginx/templates/proxy.conf.template
+      - ./manifests/dockerfiles/Dev/loadblancer/wildcard-ssl:/etc/nginx/wildcard-ssl
       - ${SSL_CERT_DIR}:/etc/nginx/ssl
       - ./manifests/dockerfiles/Dev/loadblancer/nginx.conf:/etc/nginx/nginx.conf
       - ${SSL_CA_DIR}:/etc/nginx/ca
@@ -45,7 +46,8 @@ services:
     volumes:
       - ${MOODLE_CODE_PATH_HOST}:/var/www/html
       - ${MOODLE_DATA_PATH_HOST}:/var/www/moodledata
-      - ./manifests/dockerfiles/Dev/php/docker-php-local-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-local-xdebug.ini
+      - ./manifests/dockerfiles/scripts/policy.xml:/etc/ImageMagick-6/policy.xml
+      - ./manifests/dockerfiles/Dev/php/docker-php-local-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
       - ./manifests/dockerfiles/Dev/php/php.ini-development:/usr/local/etc/php/php.ini
       - ./manifests/dockerfiles/scripts/GeoLite2-City/GeoLite2-City.mmdb:/var/lib/sitedata/GeoLite2-City.mmdb
       - ${SSL_CA_DIR}:/usr/local/share/ca-certificates/rootCA.pem
@@ -57,10 +59,8 @@ services:
         UID: 1000
         PHP_IDE_CONFIG: "serverName=iucc"
         XDEBUG_CONFIG: "idekey=iucc"
-        REMOTE_HOST: ${DOCKER_HOST_IP}
     environment:
       UID: 1000
-      REMOTE_HOST: ${DOCKER_HOST_IP}
       PHP_IDE_CONFIG: "serverName=iucc"
       XDEBUG_CONFIG: "idekey=iucc"
     security_opt:

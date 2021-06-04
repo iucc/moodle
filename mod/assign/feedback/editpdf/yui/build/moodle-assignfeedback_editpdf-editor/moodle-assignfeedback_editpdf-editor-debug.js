@@ -4121,9 +4121,10 @@ EDITOR.prototype = {
             htmleditorbutton;
 
         htmleditorbutton = this.get_dialogue_element(SELECTOR.HTMLEDITORBUTTON);
-        htmleditorbutton.on('click', this.open_htmleditor, this);
-        htmleditorbutton.on('key', this.open_htmleditor, 'down:13', this);
-
+        if(htmleditorbutton !== null &&  htmleditorbutton !== 'unknown') {
+            htmleditorbutton.on('click', this.open_htmleditor, this);
+            htmleditorbutton.on('key', this.open_htmleditor, 'down:13', this);
+        }
         searchcommentsbutton = this.get_dialogue_element(SELECTOR.SEARCHCOMMENTSBUTTON);
         searchcommentsbutton.on('click', this.open_search_comments, this);
         searchcommentsbutton.on('key', this.open_search_comments, 'down:13', this);

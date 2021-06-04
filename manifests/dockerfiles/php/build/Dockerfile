@@ -110,6 +110,7 @@ RUN set -eux; \
             sassc \
             sendmail \
             texlive-full \
+            texmaker \
             vim \
             wget \
         ; \
