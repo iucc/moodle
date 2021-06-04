@@ -5390,7 +5390,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         }
         node.set('innerHTML', this.rawtext);
         Y.use('mathjax', function() {
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, node.getDOMNode()]);
+            window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, node.getDOMNode()]);
         });
         scrollheight = node.get('scrollHeight');
         node.setStyles({
@@ -5686,6 +5686,7 @@ var HTMLCOMMENTMENUNAME = "Htmlcommentmenu",
  * @namespace M.assignfeedback_editpdf
  * @class commentmenu
  * @constructor
+ * @param {Object} config
  * @extends M.assignfeedback_editpdf.dropdown
  */
 HTMLCOMMENTMENU = function(config) {
@@ -5698,7 +5699,7 @@ Y.extend(HTMLCOMMENTMENU, M.assignfeedback_editpdf.dropdown, {
      * Initialise the menu.
      *
      * @method initializer
-     * @return void
+     * @param {Object} config
      */
     initializer: function(config) {
         var htmlcommentlinks,

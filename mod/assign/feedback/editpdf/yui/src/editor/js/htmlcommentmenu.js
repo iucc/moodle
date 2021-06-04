@@ -14,6 +14,7 @@ var HTMLCOMMENTMENUNAME = "Htmlcommentmenu",
  * @namespace M.assignfeedback_editpdf
  * @class commentmenu
  * @constructor
+ * @param {Object} config
  * @extends M.assignfeedback_editpdf.dropdown
  */
 HTMLCOMMENTMENU = function(config) {
@@ -26,7 +27,7 @@ Y.extend(HTMLCOMMENTMENU, M.assignfeedback_editpdf.dropdown, {
      * Initialise the menu.
      *
      * @method initializer
-     * @return void
+     * @param {Object} config
      */
     initializer: function(config) {
         var htmlcommentlinks,

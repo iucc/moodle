@@ -185,7 +185,7 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         }
         node.set('innerHTML', this.rawtext);
         Y.use('mathjax', function() {
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, node.getDOMNode()]);
+            window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, node.getDOMNode()]);
         });
         scrollheight = node.get('scrollHeight');
         node.setStyles({
