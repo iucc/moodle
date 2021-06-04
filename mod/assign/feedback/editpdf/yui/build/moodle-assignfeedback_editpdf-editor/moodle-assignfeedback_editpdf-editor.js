@@ -4471,9 +4471,11 @@ EDITOR.prototype = {
         var duration,
             comment,
             htmlcomment,
-            annotation;
+            annotation,
+            needsaved;
 
         duration = new Date().getTime() - this.currentedit.start;
+        needsaved = false;
 
         if (duration < CLICKTIMEOUT || this.currentedit.start === false) {
             return;
@@ -4481,16 +4483,19 @@ EDITOR.prototype = {
         if (this.currentedit.tool === 'htmleditor') {
             if (this.currentdrawable) {
                 this.currentdrawable.erase();
+                needsaved = true;
             }
             this.currentdrawable = false;
             htmlcomment = new M.assignfeedback_editpdf.htmlcomment(this);
             if (htmlcomment.init_from_edit(this.currentedit)) {
                 this.pages[this.currentpage].htmlcomments.push(htmlcomment);
                 this.drawables.push(htmlcomment.draw());
+                needsaved = true;
             }
         } else if (this.currentedit.tool === 'comment') {
             if (this.currentdrawable) {
                 this.currentdrawable.erase();
+                needsaved = true;
             }
             this.currentdrawable = false;
             comment = new M.assignfeedback_editpdf.comment(this);
@@ -4498,23 +4503,28 @@ EDITOR.prototype = {
                 this.pages[this.currentpage].comments.push(comment);
                 this.drawables.push(comment.draw(true));
                 this.editingcomment = true;
+                needsaved = true;
             }
         } else {
             annotation = this.create_annotation(this.currentedit.tool, {});
             if (annotation) {
                 if (this.currentdrawable) {
                     this.currentdrawable.erase();
+                    needsaved = true;
                 }
                 this.currentdrawable = false;
                 if (annotation.init_from_edit(this.currentedit)) {
                     this.pages[this.currentpage].annotations.push(annotation);
                     this.drawables.push(annotation.draw());
+                    needsaved = true;
                 }
             }
         }
 
         // Save the changes.
-        this.save_current_page();
+        if (needsaved) {
+            this.save_current_page();
+        }
 
         // Reset the current edit.
         this.currentedit.starttime = 0;
@@ -5441,7 +5451,9 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         }
         node.active = false;
         if (this.rawtext.replace(/^\s+|\s+$/g, "") !== '') {
-            this.editor.save_current_page();
+            if (editnode) {
+                this.editor.save_current_page();
+            }
             this.drawable = drawable;
             if (textarea) {
                 textarea.set('value', ' ');

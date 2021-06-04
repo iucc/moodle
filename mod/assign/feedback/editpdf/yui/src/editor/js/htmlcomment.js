@@ -235,7 +235,9 @@ var HTMLCOMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext
         }
         node.active = false;
         if (this.rawtext.replace(/^\s+|\s+$/g, "") !== '') {
-            this.editor.save_current_page();
+            if (editnode) {
+                this.editor.save_current_page();
+            }
             this.drawable = drawable;
             if (textarea) {
                 textarea.set('value', ' ');
