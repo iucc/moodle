@@ -57,6 +57,11 @@ class restore_assignfeedback_editpdf_subplugin extends restore_subplugin {
         $elepath = $this->get_pathfor('/feedback_editpdf_annotations/annotation');
         $paths[] = new restore_path_element($elename, $elepath);
 
+        // Html comment details.
+        $elename = $this->get_namefor('htmlcomment');
+        $elepath = $this->get_pathfor('/feedback_editpdf_htmlcomments/htmlcomment');
+        $paths[] = new restore_path_element($elename, $elepath);
+
         // Rotation details.
         $elename = $this->get_namefor('pagerotation');
         $elepath = $this->get_pathfor('/feedback_editpdf_rotation/pagerotation');

@@ -47,8 +47,8 @@ class backup_assignfeedback_editpdf_subplugin extends backup_subplugin {
         $subpluginelementannotations = new backup_nested_element('feedback_editpdf_annotations');
         $subpluginelementannotation = new backup_nested_element('annotation', null, array('gradeid', 'pageno', 'type', 'x', 'y', 'endx', 'endy', 'colour', 'path', 'draft'));
         $subpluginelementcomments = new backup_nested_element('feedback_editpdf_comments');
-        $subpluginelementhtmlcomments = new backup_nested_element('feedback_editpdf_htmlcomments');
         $subpluginelementcomment = new backup_nested_element('comment', null, array('gradeid', 'pageno', 'x', 'y', 'width', 'rawtext', 'colour', 'draft'));
+        $subpluginelementhtmlcomments = new backup_nested_element('feedback_editpdf_htmlcomments');
         $subpluginelementhtmlcomment = new backup_nested_element('htmlcomment', null, array('gradeid', 'pageno', 'x', 'y', 'width', 'rawtext', 'draft'));
         $subpluginelementrotation = new backup_nested_element('feedback_editpdf_rotation');
         $subpluginelementpagerotation = new backup_nested_element('pagerotation', null,
@@ -63,6 +63,7 @@ class backup_assignfeedback_editpdf_subplugin extends backup_subplugin {
         $subpluginwrapper->add_child($subpluginelementfiles);
         $subpluginwrapper->add_child($subpluginelementannotations);
         $subpluginwrapper->add_child($subpluginelementcomments);
+        $subpluginwrapper->add_child($subpluginelementhtmlcomments);
         $subpluginwrapper->add_child($subpluginelementrotation);
 
         // Set source to populate the data.
