@@ -1,9 +1,13 @@
 # Assign Feedback Edit PDF plugin
 ## Requirements
 ### OS packages
-- textlive-full
+- texlive-full (200+ packages)
+  - debian: apt install texlive-full
+  - redhat: yum install texlive
 - imagick
-- ghostscript
+  - debian: apt install php-imagick
+  - redhat: yum install php74-pecl-imagick
+- ghostscript (you probably have it installed because of Moodle)
 
 ### PHP extensions
 - imagick
